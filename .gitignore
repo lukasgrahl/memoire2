@@ -175,7 +175,7 @@ latex/graphs
 *.cb
 *.cb2
 .*.lb
-.*.nav
+*.nav
 *.snm
 *.synctex.gz
 
