@@ -175,3 +175,9 @@ latex/graphs
 *.cb
 *.cb2
 .*.lb
+.*.nav
+*.snm
+*.synctex.gz
+
+
+.idea/
