@@ -1,0 +1,89 @@
+\documentclass[9pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{floatrow}
+
+\usepackage{graphicx}
+\graphicspath{{./graphs/}}	% graphics
+
+\title{Master thesis presentation 3}
+\author{Grahl, Lukas}
+\institute{Paris 1: Panthéon Sorbonne}
+\date{\today}
+
+\bibliographystyle{plain}
+\DeclareFloatFont{tiny}{\tiny}
+\floatsetup[table]{font=tiny}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{frame}{Data Overview}
+		
+	To this date I have obtained the following data.
+		
+		\begin{center}
+		\tiny{
+		\begin{tabular}{l|llll}
+			Data & Purpose & Source & Status & Frequency \\
+			\hline
+			Inflation $\pi$& realised inflation & Eurostat & obtained & M \\
+			Infl. expectation $\pi^e$ & consumer inflation expectation & Bundesbank & obtained & M \\
+			ECB speeches & Supplement news data & ECB & obtained & 6-W \\
+			News-paper articles & Analyse inflation reporting & Bundesbank & waiting & D \\
+			
+		\end{tabular}
+		}	
+		\end{center}	
+	
+	While I am waiting on the news paper data I am currently preparing my analysis code using ECB press releases.
+	
+	Moreover, in the upcoming weeks I will be working on the opinion formation model as presented last time. 
+	
+	\end{frame}
+
+	\begin{frame}{Identifying surprise inflation}
+	Pre-pandemic inflation behaviour can be describe by an intercept $\alpha$, deterministic trend $\beta_1t$ and seasonality $s_{t|s}$.
+	\[
+		CPI_t - CPI_{t-1} = \pi_t = \alpha + \beta_1 t + \beta_2 s_{t|s} + \epsilon_t
+	\]
+	The post-pandemic up-tick in inflation can be identified as a divergence from this model. This strategy only holds for a limited period.
+		\begin{center}
+			\includegraphics[scale=.4]{presentation3_graph1.png}
+		\end{center}
+	\end{frame}
+	
+	\begin{frame}{Testing surprise inflation for white noise}
+	The above model only is a good model if its residual $\epsilon_t$ is white noise. The test for normality suggests it is.
+	The post-pandemic deviation from the model is not white noise. It may thus be interpreted as surprise inflation from the consumer's point of view.
+		\begin{center}
+			\includegraphics[scale=.4]{presentation3_graph2.png}
+		\end{center}
+	\end{frame}
+
+	\begin{frame}{Consumer inflation expectation}
+		
+	Comparing inflation expectation and surprise as well as realised inflation a pattern appears. Inflation expectation lag behind realised inflation. 
+	Spikes in surprise inflation do not seem to affect expectation by much.
+		\begin{center}
+			\includegraphics[scale=.2]{presentation3_graph3.png}
+		\end{center}
+	The odd shape of the violin plot stems from frequent indication of discrete round inflation values. A nice example of the round-number bias.
+	
+	\end{frame}
+
+	
+	\begin{frame}{ECB reaction to inflation}
+	
+	Unsurprisingly ECB speeches have been for a long-time concerned with inflation. This is potentially because of previously too low inflation as well as its recent surge.
+	
+	Analysis of news-paper articles will likely present another picture. I suspect inflation mentions to only be recently on the rise. 
+		\begin{center}
+			\includegraphics[scale=.4]{presentation3_graph4.png}
+		\end{center}
+	
+	As validation of the Term-Frequency-Inverse-Document-Frequency (TF-IDF) I have provided other topics, likely related to pas and current crisis.
+	\end{frame}
+
+
+\end{document}
