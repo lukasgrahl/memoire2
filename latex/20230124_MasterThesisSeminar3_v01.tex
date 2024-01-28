@@ -14,76 +14,162 @@
 \DeclareFloatFont{tiny}{\tiny}
 \floatsetup[table]{font=tiny}
 
+\usepackage{fancyvrb}
+\RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}%
+{fontsize=\footnotesize,
+	%
+	frame=lines,  % top and bottom rule only
+	framesep=2em, % separation between frame and text
+%	rulecolor=\color{Gray},
+	%
+	%	label=\fbox{\color{Black}data.txt},
+	labelposition=topline,
+	%
+	commandchars=\|\(\), % escape character and argument delimiters for
+	% commands within the verbatim
+	commentchar=*        % comment character
+}
+
+
 \begin{document}
 	
 	\maketitle
 	
-	\begin{frame}{Data Overview}
+	\begin{frame}{Time line and completion overview}
 		
-	To this date I have obtained the following data.
-		
+		To this date I have obtained the following data.
 		\begin{center}
-		\tiny{
-		\begin{tabular}{l|llll}
-			Data & Purpose & Source & Status & Frequency \\
-			\hline
-			Inflation $\pi$& realised inflation & Eurostat & obtained & M \\
-			Infl. expectation $\pi^e$ & consumer inflation expectation & Bundesbank & obtained & M \\
-			ECB speeches & Supplement news data & ECB & obtained & 6-W \\
-			News-paper articles & Analyse inflation reporting & Bundesbank & waiting & D \\
-			
-		\end{tabular}
-		}	
+			\tiny{
+				\begin{tabular}{l|llll}
+				Data & Purpose & Source & Status & Frequency \\
+				\hline
+				Inflation $\pi$& realised inflation & Eurostat & obtained & M \\
+				Infl. expectation $\pi^e$ & consumer inflation expectation & Bundesbank & obtained & M \\
+				ECB speeches & Supplement news data & ECB & obtained & 6-W \\
+				Break-even inflation & market measure of inflation expectation & Reuters & obtained & D \\
+				News-paper articles & Analyse inflation reporting & Bundesbank & waiting & D \\							
+				\end{tabular}
+			}	
 		\end{center}	
+		Presenting today: 
+		\begin{itemize}
+				\item Preprocessing of each time series (trend, seasonality, etc.)
+				\item Analysis of consumer inflation expectation residual
+		\end{itemize}
 	
-	While I am waiting on the news paper data I am currently preparing my analysis code using ECB press releases.
-	
-	Moreover, in the upcoming weeks I will be working on the opinion formation model as presented last time. 
-	
+		Next steps
+		\begin{itemize}
+			\item Prepare news-paper data analysis, extracting inflation narrative occurrences
+			\item Run VAR of different narratives on inflation expectation
+			\item Derive the probabilistic opinion formation model as presented last time
+			\item Bayesian estimation of opinion formation model
+		\end{itemize}
+		
 	\end{frame}
 
-	\begin{frame}{Identifying surprise inflation}
-	Pre-pandemic inflation behaviour can be describe by an intercept $\alpha$, deterministic trend $\beta_1t$ and seasonality $s_{t|s}$.
-	\[
-		CPI_t - CPI_{t-1} = \pi_t = \alpha + \beta_1 t + \beta_2 s_{t|s} + \epsilon_t
-	\]
-	The post-pandemic up-tick in inflation can be identified as a divergence from this model. This strategy only holds for a limited period.
+	\begin{frame}{Preprocessing: Descriptive Statistics}
+		\VerbatimInput{{./graphs/desc.txt}}
+	\end{frame}
+
+	\begin{frame}{Preprocessing: Covariance matrix}
+		\VerbatimInput{{./graphs/cov.txt}}
+	\end{frame}
+
+	\begin{frame}{Preprocessing: Identifying surprise inflation}
+	
+		Pre-pandemic inflation follows a stable path, which can bed describe by an intercept $\alpha$, deterministic trend $\beta_1t$ and seasonality $s_{t|s}$.
+		\[
+		CPI_t - CPI_{t-1} = \pi_t = \alpha + \beta_1 t + \beta_2 	s_{t|s} + \epsilon_t
+		\]
+		The post-pandemic up-tick in inflation can be identified as a divergence from this model. Such strategy, evidently, only holds for a limited period.
+		
 		\begin{center}
 			\includegraphics[scale=.4]{presentation3_graph1.png}
 		\end{center}
+		
 	\end{frame}
+
+
 	
 	\begin{frame}{Testing surprise inflation for white noise}
-	The above model only is a good model if its residual $\epsilon_t$ is white noise. The test for normality suggests it is.
-	The post-pandemic deviation from the model is not white noise. It may thus be interpreted as surprise inflation from the consumer's point of view.
+
+		The above model only is a good model if its residual $\epsilon_t$ is white noise. The test for normality suggests it is.
+		The post-pandemic deviation from the model is not white noise. It may thus be interpreted as surprise inflation from the consumer's point of view.
+		
 		\begin{center}
 			\includegraphics[scale=.4]{presentation3_graph2.png}
-		\end{center}
-	\end{frame}
-
-	\begin{frame}{Consumer inflation expectation}
 		
-	Comparing inflation expectation and surprise as well as realised inflation a pattern appears. Inflation expectation lag behind realised inflation. 
-	Spikes in surprise inflation do not seem to affect expectation by much.
-		\begin{center}
-			\includegraphics[scale=.2]{presentation3_graph3.png}
 		\end{center}
-	The odd shape of the violin plot stems from frequent indication of discrete round inflation values. A nice example of the round-number bias.
 	
 	\end{frame}
-
 	
-	\begin{frame}{ECB reaction to inflation}
-	
-	Unsurprisingly ECB speeches have been for a long-time concerned with inflation. This is potentially because of previously too low inflation as well as its recent surge.
-	
-	Analysis of news-paper articles will likely present another picture. I suspect inflation mentions to only be recently on the rise. 
+	\begin{frame}{Preprocessing: ECB reaction to inflation}
+		
+		Unsurprisingly ECB speeches have been for a long-time concerned with inflation. This is potentially because of previously too low inflation as well as its recent surge.
+		
+		Analysis of news-paper articles will likely present another picture. I suspect inflation mentions to only be recently on the rise.
+		
 		\begin{center}
 			\includegraphics[scale=.4]{presentation3_graph4.png}
 		\end{center}
-	
-	As validation of the Term-Frequency-Inverse-Document-Frequency (TF-IDF) I have provided other topics, likely related to pas and current crisis.
+		
+		As validation of the Term-Frequency-Inverse-Document-Frequency (TF-IDF) I have provided other topics, likely related to pas and current crisis.
+		
 	\end{frame}
+
+	
+	\begin{frame}{Preprocessing: Break Even Inflation (BEI)}
+		
+		Break-even inflation for Germany is the difference between the yield to maturity (YTM) of a 10y government bond and its inflation adjusted counterpart.
+		
+		I obtained the YTM through Newton's method solver. The results match up with the BEI for France, obtained from the Banque de France.
+		
+		\begin{center}
+			\includegraphics[scale=.275]{presentation3_graph5.png}
+		\end{center}
+		
+		Break-even inflation, though different in levels appear to follow a similar pattern to surprise inflation.
+		
+	\end{frame}
+
+	\begin{frame}{Preprocessing: Consumer inflation expectation}
+		
+		The household panel inflation expectation survey inquires about inflation expectation of thousands of households every month. Most households are surveyed up to 20 times in two month windows. 
+		I am therefore estimating average inflation expectation from the point expectation by household (red dots) using spline Bayesian estimation. \\
+				
+		In comparing inflation expectation with surprise and realised inflation a pattern emerges. Inflation expectation underestimates realised inflation. 
+		
+		\begin{center}
+			\includegraphics[scale=.3]{presentation3_graph6.png}
+		\end{center}
+	
+	\end{frame}
+
+	\begin{frame}{Analysis: Consumer inflation expectation}
+		
+	The above provides an estimate for overall inflation expectation. It does not provide an account for the individual errors of agents.
+	An investigation leveraging the panel dimension reveals that less precise agents tend to over rather than underestimate inflation.
+	
+		\[
+			\pi^s_t = \alpha_i + \beta_i \pi^e_{i,t} + \epsilon_{i,t} \quad \hat{\pi}_{i,t}^e = \pi^s_t - \alpha_i + \beta_i \pi^e_{i,t}
+		\]
+		
+		\[
+			mse_i = \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi^e_{i,t}} \right]^2
+			\quad
+			me_i =  \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi^e_{i,t}} \right]
+		\]
+		
+		\begin{center}
+			\includegraphics[scale=.3]{presentation3_pi_resid.png}
+		\end{center}
+	\end{frame}
+
+	
+
+	
+
+	
 
 
 \end{document}
