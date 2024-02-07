@@ -54,7 +54,7 @@
 		Presenting today: 
 		\begin{itemize}
 				\item Preprocessing of each time series (trend, seasonality, etc.)
-				\item Analysis of consumer inflation expectation residual
+				\item Analysis of individual consumer inflation expectation residuals
 		\end{itemize}
 	
 		Next steps
@@ -151,13 +151,13 @@
 	An investigation leveraging the panel dimension reveals that less precise agents tend to over rather than underestimate inflation.
 	
 		\[
-			\pi^s_t = \alpha_i + \beta_i \pi^e_{i,t} + \epsilon_{i,t} \quad \hat{\pi}_{i,t}^e = \pi^s_t - \alpha_i + \beta_i \pi^e_{i,t}
+			\pi^s_t = \alpha_i + \beta_i \pi^e_{i,t} + \epsilon_{i,t} \quad \hat{\pi}_{i,t}^e = \alpha_i + \beta_i \pi^e_{i,t}
 		\]
 		
 		\[
-			mse_i = \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi^e_{i,t}} \right]^2
+			mse_i = \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi}_{i,t}^e \right]^2
 			\quad
-			me_i =  \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi^e_{i,t}} \right]
+			me_i =  \sum_{i=0}^{I} \left[\pi^s_t - \hat{\pi}_{i,t}^e \right]
 		\]
 		
 		\begin{center}
