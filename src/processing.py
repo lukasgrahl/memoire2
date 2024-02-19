@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+from src.utils import get_samp
+from itertools import chain
+
 
 def x_get_ytm_newton(f, p, c, T, guess=.05, max_iter=2_000) -> (float, float):
     """
@@ -109,3 +112,45 @@ def srs_apply_impute_data(srs: pd.Series) -> pd.Series:
 
     srs.loc[srs.isna()] = get_fitted_dist(arr, dists=['gamma', 'norm']).rvs(srs.isna().sum())
     return srs
+
+
+def get_homogeneous_shape(srs: pd.Series, target_count, dists: list = ['gamma', 'norm']):
+    arr = srs.dropna().values
+    if len(arr) < target_count:
+        arr = srs.dropna().values
+        dist = get_fitted_dist(arr, dists=dists)
+        return np.concatenate([arr, dist.rvs(target_count - len(arr))])
+    else:
+        return arr[get_samp(len(arr), target_count)]
+
+
+def pd_join_dfs(lst_dfs: list, index_name: str = 'date'):
+    # assert ([type(i.index) == pd.core.indexes.datetimes.DatetimeIndex for i in lst_dfs]) == len(lst_dfs), "not datetime index"
+
+    df = pd.DataFrame(
+        index=pd.date_range(
+            start=min([*chain(*[[i.index.min(), i.index.max()] for i in lst_dfs])]),
+            end=max([*chain(*[[i.index.min(), i.index.max()] for i in lst_dfs])]),
+            freq="D",
+        )
+    )
+
+    for d in lst_dfs:
+        df = df.join(d, how='outer')
+    df.index.name = index_name
+    return df
+
+
+def pd_groupby(df, cols, agg_freq: str, agg_func: str):
+    df = df[cols].copy()
+    df[agg_freq] = df.index.to_period(agg_freq)
+    if agg_func == 'median':
+        df = df.groupby(agg_freq).median()
+    elif agg_func == 'mean':
+        df = df.groupby(agg_freq).mean()
+    elif agg_func == 'last':
+        df = df.groupby(agg_freq).last()
+    else:
+        raise KeyError(f'{agg_func} unknonw, please specify in func')
+    df.index = df.index.to_timestamp()
+    return df
