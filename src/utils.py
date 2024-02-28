@@ -1,18 +1,13 @@
 import os
+import pickle
 from datetime import datetime
-import warnings
-
-from io import StringIO
-import sys
+from settings import TEXT_DIR
+import numba as nb
 
 import numpy as np
 import pandas as pd
 
 from settings import DATA_DIR, GRAPHS_DIR
-
-
-def get_samp(max_dim, size=100):
-    return np.random.randint(0, max_dim, min(size, max_dim))
 
 
 def get_dt_index(df: pd.DataFrame, dt_index_col=None, is_rename_date: bool = True):
@@ -84,3 +79,75 @@ def write_to_txt(output: str, file_name, file_dir=None):
     f.write(output)
     f.close()
     pass
+
+
+def save_pkl(file: dict, f_name: str, f_path: str = None):
+    if f_path is None:
+        f_path = TEXT_DIR
+    t = open(os.path.join(f_path, f"{f_name}"), "wb+")
+    pickle.dump(file, t)
+    t.close()
+    pass
+
+
+def load_pickle(f_name, f_path=None):
+    if f_path is None:
+        f_path = TEXT_DIR
+    t = open(os.path.join(f_path, f_name), 'rb')
+    file = pickle.load(t)
+    t.close()
+    return file
+
+
+@nb.njit()
+def frobenius_norm(a):
+    norms = np.empty(a.shape[0], dtype=a.dtype)
+    for i in nb.prange(a.shape[0]):
+        norms[i] = np.sqrt(np.sum(a[0] ** 2))
+    return norms
+
+
+@nb.njit()
+def arr_norm(arr, axis=0):
+    return np.sqrt(np.sum(arr ** 2, axis=axis))
+
+
+@nb.njit()
+def arr_to_unity(arr):
+    # norm = frobenius_norm(arr)
+    norm = arr_norm(arr, axis=1)
+    is_null = np.abs(norm) == 0
+    norm[is_null] = np.ones(is_null.sum()) * 1e-8
+    arr = np.divide(arr, norm[:, None])
+    return arr
+
+
+@nb.njit()
+def vec_similarity(arr, search_terms):
+    arr, search_terms = arr_to_unity(arr), arr_to_unity(search_terms)
+    return np.dot(arr, search_terms.T)
+
+
+def arr_min_max_scale(arr):
+    if arr.min() != arr.max():
+        return (arr - arr.min()) / (arr.max() - arr.min())
+    else:
+        return arr
+
+
+def pd_join_freq(df1, df2, freq: str = 'D', keep_indices: bool = True, **kwargs):
+    df1, df2 = df1.copy(), df2.copy()
+    
+    for d in [df1, df2]:
+        assert d.index.name != freq, "pls change index name"
+        
+    if keep_indices:
+        df1[df1.index.name] = df1.index
+        df2['index_right'] = df2.index
+    
+    df1[freq] = df1.index.to_period(freq)
+    df2[freq] = df2.index.to_period(freq)
+    
+    df = pd.merge(df1, df2, on=freq, **kwargs).set_index(freq) #, axis=1)
+    df.index = df.index.to_timestamp()
+    return df

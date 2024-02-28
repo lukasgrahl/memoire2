@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from src.utils import get_samp
+from src.pymc_modelling import get_samp
 from itertools import chain
 
 
@@ -150,6 +150,10 @@ def pd_groupby(df, cols, agg_freq: str, agg_func: str):
         df = df.groupby(agg_freq).mean()
     elif agg_func == 'last':
         df = df.groupby(agg_freq).last()
+    elif agg_func == 'q1':
+        df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), .25) if len(x.dropna()) > 1 else np.nan)
+    elif agg_func == 'q3':
+        df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), .75) if len(x.dropna()) > 1 else np.nan)
     else:
         raise KeyError(f'{agg_func} unknonw, please specify in func')
     df.index = df.index.to_timestamp()
