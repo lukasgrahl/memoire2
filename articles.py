@@ -10,40 +10,56 @@ from itertools import compress, chain
 from tqdm import tqdm
 
 from settings import DATA_DIR, NEWS_TEXT_DIR, SPACY_DIR
-from src.utils import load_pickle, save_pkl, vec_similarity, arr_min_max_scale
+from src.utils import load_pickle, save_pkl, vec_similarity, arr_min_max_scale, load_pd_df
+from src.nlp_utils import get_spacy_NLP, load_raw_data
 
-# NLP = spacy.load("en_core_web_lg")
-def get_NLP(lang: str = 'en'):
-    if lang == 'de':
-        return spacy.load(os.path.join(SPACY_DIR, f'de_core_news_lg', 'de_core_news_lg-3.7.0'))
-    elif lang == 'en':
-        return spacy.load(os.path.join(SPACY_DIR, f'en_core_web_lg', 'en_core_web_lg-3.7.1'))
-    else:
-        raise KeyError(f'{lang} unknonw')
+NLP = get_spacy_NLP('de')
 
-NLP = get_NLP()
 
-LST_IS_INFL_TOKENS = ['inflation', 'price']
+LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate', 'preis']
 LST_SPACY_POS = ['PROPN', 'NOUN', 'AJD']
 LST_FREQUENT_NON_MEANING = ['euro', 'area', 'rate', 'council', 'month', 'year', 'today']
 
 DICT_NARRATIVES = {
+    "inflation": {
+        'g1': ["kaufpreis", "inflation", "preis", "inflationsrate"],
+    },
     "S_labour": {
-        'g1': ["labour"],
-        'g2': ["wage", "employment"],
+        'g1': ["beschäftigter", "mitarbeiter", "arbeitnehmer"],
+        'g2': ["gehalt",],
     },
     "S_supply_chain": {
-        'g1': ["supply", "chain", "shortage"],
-        'g2': ['semi-conductor'],
-        'g3': ['trade'],
+        'g1': ["supply", "chain", "mangel"],
+        'g2': ['halbleiter'],
+        # 'g3': ['handel'],
+        'g4': ['kosten', 'produktion']
     },
-    # "D_tax_cut": ["government spending", "tax reduction"],
+    "S_war_energy": {
+        'g1': ['russland', 'ukraine'],
+        'g2': ['energie', 'energiepreis'], 
+        'g3': ['nord', 'stream'],
+        'g4': ['krieg'],
+        'g5': ['gas', 'strom']
+    },    
     "D_hh_spend": {
-        'g1': ['demand', 'household', 'spending'],
-        'g2': ['consumption']
+        'g1': ['nachfrage', 'ausgabe'],
+        'g2': ['konsum'],
+        'g3': ["haushalt", "verbraucher"]
     },
-    # "M_policy": ["interest rate", "quantitative easing"],
+    'S_pandemic': {
+        'g1': ['pandemie', 'coronavirus', 'covid']
+    },
+    "M_policy": {
+        'g1': ["zins", "zinsrate"],
+        'g2': ['geldpolitik'],
+        'g3': ['notenbank', 'fed', 'zentralbank'],
+    },
+
+    # "D_tax_cut": ["government spending", "tax reduction"],
 }
+
+
+# start code
 DICT_NARRATIVES_DOC = {
     nkey: {
         gkey: [NLP(term) for term in group] for gkey, group in narrative.items()
@@ -61,23 +77,8 @@ DICT_NARRATIVES_VEC = {
 
 is_load = False
 if is_load:
-    f = open(os.path.join(DATA_DIR, 'ecb_speeches.pickle'), 'rb')
-    speeches = pickle.load(f)
-    f.close()
-
-    speeches = {
-        str(uuid4()): {
-            k: speech[k] for k in speech.keys() if k in ['date', 'url', 'title', 'header', 'text']
-        }
-        for speech in speeches.values()
-    }
-
-    for k, v in speeches.items():
-        f = open(os.path.join(NEWS_TEXT_DIR, 'orig', f'{k}.pkl'), 'wb+')
-        pickle.dump(v, f)
-        f.close()
-
-
+    load_raw_data('news_data.json')
+    
 def run(file_names: tuple):
     for file_name in tqdm(file_names):
 
@@ -88,8 +89,9 @@ def run(file_names: tuple):
 
         # flags
         is_infl = sum([(exp in s['text']) for exp in LST_IS_INFL_TOKENS]) > 0
-        s['infl'] = is_infl
+        s['is_infl'] = is_infl
 
+        is_infl = True
         if is_infl:
 
             # spacy
@@ -106,7 +108,11 @@ def run(file_names: tuple):
                             ]
 
             lst_nchunks = [*s['doc'].noun_chunks]
-            arr_nchunks = np.concatenate([i.vector[None] for i in lst_nchunks], axis=0)
+            try:
+                arr_nchunks = np.concatenate([i.vector[None] for i in lst_nchunks], axis=0)
+            except Exception as e:
+                print(e)
+                continue
 
             # noun counter
             s['counter'] = dict(Counter(s['lst_nouns']))
@@ -130,6 +136,7 @@ def run(file_names: tuple):
                             for sterm in lst_sterms
                         ]
                     ).T
+                    
                     # aggregate similarity and literal filter
                     # filt = arr_min_max_scale(np.sqrt(np.prod((1 + filt_sim) ** 2, axis=1)) * filt_det)
 
@@ -190,9 +197,11 @@ def run(file_names: tuple):
 
 if __name__ == "__main__":
     inputs = os.listdir(os.path.join(NEWS_TEXT_DIR, 'orig'))
+    print(f"{len(inputs)} articles")
     N = int(np.ceil(len(inputs) / os.cpu_count()))
     inputs = [tuple(inputs[i:i + N]) for i in range(0, len(inputs), N)]
-    # inputs = [i[:40] for i in inputs]
+
+    inputs = [i[:300] for i in inputs]
 
     # run(inputs[0])
     with multiprocessing.Pool(processes=os.cpu_count()) as pool:
