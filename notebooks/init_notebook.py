@@ -1,6 +1,6 @@
 import sys
 sys.path.append('..')
-from settings import DATA_DIR, GRAPHS_DIR, TEXT_DIR, SPACY_DIR
+from settings import DATA_DIR, GRAPHS_DIR, ECB_TEXT_DIR, NEWS_TEXT_DIR, SPACY_DIR
 
 import pandas as pd
 import numpy as np

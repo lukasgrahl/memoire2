@@ -9,7 +9,7 @@ from collections import Counter
 from itertools import compress, chain
 from tqdm import tqdm
 
-from settings import DATA_DIR, TEXT_DIR, SPACY_DIR
+from settings import DATA_DIR, NEWS_TEXT_DIR, SPACY_DIR
 from src.utils import load_pickle, save_pkl, vec_similarity, arr_min_max_scale
 
 # NLP = spacy.load("en_core_web_lg")
@@ -73,7 +73,7 @@ if is_load:
     }
 
     for k, v in speeches.items():
-        f = open(os.path.join(TEXT_DIR, 'orig', f'{k}.pkl'), 'wb+')
+        f = open(os.path.join(NEWS_TEXT_DIR, 'orig', f'{k}.pkl'), 'wb+')
         pickle.dump(v, f)
         f.close()
 
@@ -82,7 +82,7 @@ def run(file_names: tuple):
     for file_name in tqdm(file_names):
 
         try:
-            s = load_pickle(file_name, f_path=os.path.join(TEXT_DIR, 'orig'))
+            s = load_pickle(file_name, f_path=os.path.join(NEWS_TEXT_DIR, 'orig'))
         except EOFError:
             continue
 
@@ -183,13 +183,13 @@ def run(file_names: tuple):
                 ]
             }
 
-            save_pkl(s, file_name, TEXT_DIR)
+            save_pkl(s, file_name, NEWS_TEXT_DIR)
 
     pass
 
 
 if __name__ == "__main__":
-    inputs = os.listdir(os.path.join(TEXT_DIR, 'orig'))
+    inputs = os.listdir(os.path.join(NEWS_TEXT_DIR, 'orig'))
     N = int(np.ceil(len(inputs) / os.cpu_count()))
     inputs = [tuple(inputs[i:i + N]) for i in range(0, len(inputs), N)]
     # inputs = [i[:40] for i in inputs]
