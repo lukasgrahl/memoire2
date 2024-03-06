@@ -1,10 +1,11 @@
-LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate', 'preis']
+LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate']
 LST_SPACY_POS = ['PROPN', 'NOUN', 'AJD']
 
 DICT_NARRATIVES = {
     "inflation": {
         'g1': ["kaufpreis", "preis",],
         'g2': [ "inflation", "inflationsrate"],
+        'g3': ['teuerung', 'preissteigerung'],
     },
     "S_labour": {
         'g1': ["beschäftigter", "mitarbeiter", "arbeitnehmer"],
@@ -35,24 +36,33 @@ DICT_NARRATIVES = {
         'g1': ['nachfrage', 'ausgabe'],
         'g2': ['konsum'],
         'g3': ["haushalt", "verbraucher", "kunde"]
+        'g4': ['lebensmittel']
     },
     'S_pandemic': {
-        'g1': ['pandemie', 'corona', 'covid', 'virus']
+        'g1': ['corona', 'covid']
+        'g2': ['pandemie', 'virus']
+        'g3': ['lockdown', 'lockdowns']
     },
     "M_policy": {
         'g1': ["zins", "zinsrate"],
         'g2': ['geldpolitik'],
         'g3': ['notenbank', 'zentralbank'],
         'g4': ['fed', 'ezb'],
+        'g5': ['lagarde']
     },
 
     "M_crisis": {
         'g1': ['krise'],
-        'g2': ['rezession']
+        'g2': ['rezession'],
+        'g3': ['risiko']
     }
 
     # "D_tax_cut": ["government spending", "tax reduction"],
 }
+
+"""
+mensch, markt, folge, welt, ziel, höhe
+"""
 
 LST_FREQUENT_NON_MEANING = [
         

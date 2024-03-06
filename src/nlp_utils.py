@@ -67,7 +67,7 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
     def __init__(self, n_components=10, doc_topic_prior=None, topic_word_prior=None, learning_method='online',
                  learning_decay=0.7, learning_offset=10.0, max_iter=10, batch_size=128, evaluate_every=-1,
                  total_samples=1000000.0, perp_tol=0.1, mean_change_tol=0.001, max_doc_update_iter=100, n_jobs=None,
-                 verbose=0, random_state=None, ptws=None, ptws_bias: float = 5):
+                 verbose=0, random_state=None, ptws=None, ptws_bias=None):
         super(PTWGuidedLatentDirichletAllocation, self).__init__(n_components=n_components,
                                                                  doc_topic_prior=doc_topic_prior,
                                                                  topic_word_prior=topic_word_prior,
@@ -79,10 +79,14 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
                                                                  mean_change_tol=mean_change_tol,
                                                                  max_doc_update_iter=max_doc_update_iter, n_jobs=n_jobs,
                                                                  verbose=verbose,
-                                                                 random_state=random_state)  # n_topics=n_topics)
-        assert len(ptws) == self.n_components
+                                                                 random_state=random_state,)  # n_topics=n_topics)
+        assert len(ptws) == self.n_components, "number of prior categories must concur with n_components"
         self.ptws = ptws
-        self.ptws_bias = ptws_bias
+
+        if ptws_bias is None:
+            self.ptws_bias = self.n_components
+        else:
+            self.ptws_bias = ptws_bias
 
     def _init_latent_vars(self, n_features, dtype):
         """Initialize latent variables."""

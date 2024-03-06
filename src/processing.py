@@ -142,19 +142,26 @@ def pd_join_dfs(lst_dfs: list, index_name: str = 'date'):
 
 
 def pd_groupby(df, cols, agg_freq: str, agg_func: str):
+    assert type(cols) == list, "please specify columns as list"
     df = df[cols].copy()
+
     df[agg_freq] = df.index.to_period(agg_freq)
+
     if agg_func == 'median':
         df = df.groupby(agg_freq).median()
     elif agg_func == 'mean':
         df = df.groupby(agg_freq).mean()
     elif agg_func == 'last':
         df = df.groupby(agg_freq).last()
+    elif "q_" in agg_func:
+        q = float(agg_func.split("_")[1]) / 100
+        df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), q) if len(x.dropna()) > 1 else np.nan)
     elif agg_func == 'q1':
         df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), .25) if len(x.dropna()) > 1 else np.nan)
     elif agg_func == 'q3':
         df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), .75) if len(x.dropna()) > 1 else np.nan)
     else:
         raise KeyError(f'{agg_func} unknonw, please specify in func')
+    
     df.index = df.index.to_timestamp()
     return df
