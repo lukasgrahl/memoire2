@@ -1,7 +1,7 @@
 import os
 import pickle
 from datetime import datetime
-from settings import NEWS_TEXT_DIR
+from settings import NEWS_TEXT_DIR, GRAPHS_DIR
 import numba as nb
 
 import numpy as np
@@ -83,10 +83,16 @@ def write_to_txt(output: str, file_name, file_dir=None):
 
 def save_pkl(file: dict, f_name: str, f_path: str = None):
     if f_path is None:
-        f_path = NEW
+        f_path = NEWS_TEXT_DIR
     t = open(os.path.join(f_path, f"{f_name}"), "wb+")
     pickle.dump(file, t)
     t.close()
+    pass
+
+def save_fig(fig, f_name: str, f_path: str = None):
+    if f_path is None:
+        f_path = GRAPHS_DIR
+    fig.savefig(os.path.join(f_path, f_name))
     pass
 
 

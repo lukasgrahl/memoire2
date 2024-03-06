@@ -2,66 +2,93 @@ LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate']
 LST_SPACY_POS = ['PROPN', 'NOUN', 'AJD']
 
 DICT_NARRATIVES = {
-    "inflation": {
-        'g1': ["kaufpreis", "preis",],
+    "D_inflation": {
+        'g1': ["kaufpreis", "preis", "verbraucherpreis",],
         'g2': [ "inflation", "inflationsrate"],
         'g3': ['teuerung', 'preissteigerung'],
+        'g4': ['inflationserwartung', "zinserwartung"],
     },
     "S_labour": {
-        'g1': ["beschäftigter", "mitarbeiter", "arbeitnehmer"],
-        'g2': ["gehalt", "lohn"],
-        'g3': ["arbeitslosigkeit", "arbeitslosenquote", "arbeitslosenzahl"]
+        'g1': ["mitarbeiter", "arbeitnehmer"],
+        'g2': ["gehalt", "lohn", "gehaltssteigerung", "lohnsteigerung"],
+        'g3': ["arbeitslosigkeit", "arbeitslosenquote", "arbeitslosenzahl"],
+        'g4': ['beschäftigter', 'beschäftigung'],
+
     },
     "S_supply_chain": {
         'g1': ["supply", "chain"],
         'g2': ["lieferkette"],
         'g3': ["import", "handel"],
-        'g4': ['produktion', 'hersteller'],
-        'g5': ['kosten',],
-        'g6': ['halbleiter'],
+        'g4': ["halbleiter"],
+        "g5": ["engpass"],
+    },
+    "S_production": {
+        'g1': ['produktion', 'hersteller'],
+        "g2": ['produktionskapazität'],
+        'g3': ['kosten', "produktionskosten"],
+        "g4": ["angebot", "angebotsschock", "angebotsknappheit"],
+        
     },
     "S_war": {
         'g1': ['russland', 'ukraine'],
         'g2': ['krieg', 'konflikt'],
-        'g3': ['sanktion']
+        'g3': ['sanktion'],
     },
     "S_energy": {
         'g1': ['nord', 'stream', 'pipeline'],
         'g2': ['gas', 'erdgas', 'preis'],
         'g3': ['strom', 'öl', 'preis'],
         'g4': ['energie', 'preis'], 
-        
-    },    
-    "D_hh_spend": {
-        'g1': ['nachfrage', 'ausgabe'],
-        'g2': ['konsum'],
-        'g3': ["haushalt", "verbraucher", "kunde"]
-        'g4': ['lebensmittel']
+    },
+    "S_profits" : {
+
+        "g1": ["profit", "profitabilität"],
+        "g2": ["gewinn", "unternehmensgewinn", "gewinnabschöpfung", "gewinnmitnahm", "rekordgewinn"],
+        "g3": ["übergewinnsteuer", "übergewinn"],
+        "g4": ["gierflation"],
     },
     'S_pandemic': {
-        'g1': ['corona', 'covid']
-        'g2': ['pandemie', 'virus']
-        'g3': ['lockdown', 'lockdowns']
-    },
+        'g1': ['corona', 'covid'],
+        'g2': ['pandemie', 'virus'],
+        'g3': ['lockdown', 'lockdowns'],
+    },    
     "M_policy": {
         'g1': ["zins", "zinsrate"],
         'g2': ['geldpolitik'],
         'g3': ['notenbank', 'zentralbank'],
         'g4': ['fed', 'ezb'],
-        'g5': ['lagarde']
+        'g5': ["christine", 'lagarde', "jerome", "powell", "mario", "draghi"],
     },
-
+    "M_policy_counter": {
+        'g1': ['niedrigzinsphase'],
+        'g2': ['quantiative', 'easing'],
+        'g3': ["anleihenkauf", "anleihenkaufprogramm", "staatsanleihenkaufprogramm", "kaufprogramm"],
+        "g4": ["pepp"],
+    },
     "M_crisis": {
         'g1': ['krise'],
         'g2': ['rezession'],
-        'g3': ['risiko']
-    }
+        'g3': ['risiko'],
+    },
+    "D_gov": {
+        'g1': ["konjunkturprogramm"],
+        'g2': ["subvention", "staatshilfe"],
+        "g3": ["staatsverschuldung", "schuldenlast", "schuldenbremse", "schuldenkrise"],
+        "g4": ["coronahilfe"],
+        "g5": ["kurzarbeit", "kurzarbeitergeld"],
+        "g6": ["mehrwertsteuersenkung", "steuersenkung"],
+    },
+    "D_hh_spend": {
+        'g1': ['nachfrage', "nachfrageschub"], 
+        'g2': ['konsum', 'ausgabe'],
+        'g3': ["haushalt", "verbraucher", "kunde"],
+        'g4': ['lebensmittel'],
+    },
 
-    # "D_tax_cut": ["government spending", "tax reduction"],
 }
 
 """
-mensch, markt, folge, welt, ziel, höhe
+mensch, markt, folge, welt, ziel, höhe, sinn, jahrhundert
 """
 
 LST_FREQUENT_NON_MEANING = [

@@ -5,6 +5,11 @@ from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.utils import check_random_state
 from sklearn.decomposition._online_lda_fast import _dirichlet_expectation_2d
 
+from patsy import dmatrix
+import pymc as pm
+import arviz as az
+
+
 from tqdm import tqdm
 import os
 from uuid import uuid4
@@ -124,3 +129,60 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
         # In the literature, this is `exp(E[log(beta)])`
         self.exp_dirichlet_component_ = np.exp(
             _dirichlet_expectation_2d(self.components_))
+
+
+def get_topic_smooth(ser: pd.Series, n_knots: int = 5, is_samp_post_prior: bool = True, **kwargs):
+    knot_list = np.linspace(0, len(ser), n_knots+2)[1:-1]
+    
+    B = dmatrix(
+    "bs(cnt, knots=knots, degree=3, include_intercept=True)-1",
+    {"cnt": range(len(ser)), "knots": knot_list[1:-1]}
+    )
+    
+    with pm.Model() as mod:
+        tau = pm.HalfCauchy("tau", 1) 
+        beta = pm.Normal("beta", mu=0, sigma=tau, shape=B.shape[1])
+        mu = pm.Deterministic("mu", pm.math.dot(B.T.T, beta))
+        sigma = pm.HalfNormal("sigma", 1)
+        pm.Normal("likelihood", mu, sigma, observed=ser.values)
+
+        trace = pm.sample(1000, nuts_sampler="numpyro", chains=2, **kwargs)
+        if is_samp_post_prior:
+            prior = pm.sample_prior_predictive()
+            post = pm.sample_posterior_predictive(trace)
+    
+            return mod, prior, trace, post, B
+        else:
+            return mod, trace, B
+
+            
+
+def evalute_optimal_smoothing(ser, search_range: range):
+    mods, traces = {}, {}
+    for k in tqdm([*search_range]):
+
+        if len(traces) > 3:
+            # if loos shows now improvement after 4 steps continue
+            is_decrease = sum(
+                [
+                    (az.loo(list(traces.values())[i]).elpd_loo > az.loo(list(traces.values())[i-1]).elpd_loo) 
+                    for i in reversed(range(1, len(traces)))
+                ]
+                ) == len(traces) -1
+            if is_decrease:
+                print(f"No Loo improvement for {ser.name}")
+                break
+
+        mod, trace, _ = get_topic_smooth(
+            ser,
+            n_knots=k,
+            is_samp_post_prior=False,
+            return_inferencedata=True,
+            idata_kwargs = {'log_likelihood': True}
+        )
+        
+        mods[k] = mod
+        traces[k] = trace
+
+    df = az.compare(traces)
+    return df, mods, traces
