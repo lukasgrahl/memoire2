@@ -21,12 +21,10 @@ DICT_NARRATIVES = {
         'g3': ["import", "handel"],
         'g4': ["halbleiter"],
         "g5": ["engpass"],
-    },
-    "S_production": {
-        'g1': ['produktion', 'hersteller'],
-        "g2": ['produktionskapazität'],
-        'g3': ['kosten', "produktionskosten"],
-        "g4": ["angebot", "angebotsschock", "angebotsknappheit"],
+        'g6': ['produktion', 'hersteller'],
+        "g7": ['produktionskapazität'],
+        'g8': ['kosten', "produktionskosten"],
+        "g9": ["angebot", "angebotsschock", "angebotsknappheit"],
         
     },
     "S_war": {
@@ -64,12 +62,12 @@ DICT_NARRATIVES = {
         'g2': ['quantiative', 'easing'],
         'g3': ["anleihenkauf", "anleihenkaufprogramm", "staatsanleihenkaufprogramm", "kaufprogramm"],
         "g4": ["pepp"],
-    },
-    "M_crisis": {
-        'g1': ['krise'],
-        'g2': ['rezession'],
-        'g3': ['risiko'],
-    },
+    # },
+    # "M_crisis": {
+    #     'g1': ['krise'],
+    #     'g2': ['rezession'],
+    #     'g3': ['risiko'],
+    # },
     "D_gov": {
         'g1': ["konjunkturprogramm"],
         'g2': ["subvention", "staatshilfe"],

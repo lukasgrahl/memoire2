@@ -141,19 +141,21 @@ def arr_min_max_scale(arr):
         return arr
 
 
-def pd_join_freq(df1, df2, freq: str = 'D', keep_indices: bool = True, **kwargs):
+def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwargs):
     df1, df2 = df1.copy(), df2.copy()
     
     for d in [df1, df2]:
         assert d.index.name != freq, "pls change index name"
         
-    if keep_indices:
+    if keep_left_index:
         df1[df1.index.name] = df1.index
-        df2['index_right'] = df2.index
+        # df2['index_right'] = df2.index
     
     df1[freq] = df1.index.to_period(freq)
     df2[freq] = df2.index.to_period(freq)
     
     df = pd.merge(df1, df2, on=freq, **kwargs).set_index(freq) #, axis=1)
     df.index = df.index.to_timestamp()
+    if keep_left_index:
+        df = df.set_index(df1.index.name, drop=False)
     return df

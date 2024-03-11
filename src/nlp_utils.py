@@ -9,6 +9,8 @@ from patsy import dmatrix
 import pymc as pm
 import arviz as az
 
+import multiprocessing
+import time
 
 from tqdm import tqdm
 import os
@@ -84,7 +86,7 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
                                                                  mean_change_tol=mean_change_tol,
                                                                  max_doc_update_iter=max_doc_update_iter, n_jobs=n_jobs,
                                                                  verbose=verbose,
-                                                                 random_state=random_state,)  # n_topics=n_topics)
+                                                                 random_state=random_state, )  # n_topics=n_topics)
         assert len(ptws) == self.n_components, "number of prior categories must concur with n_components"
         self.ptws = ptws
 
@@ -132,15 +134,15 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
 
 
 def get_topic_smooth(ser: pd.Series, n_knots: int = 5, is_samp_post_prior: bool = True, **kwargs):
-    knot_list = np.linspace(0, len(ser), n_knots+2)[1:-1]
-    
+    knot_list = np.linspace(0, len(ser), n_knots + 2)[1:-1]
+
     B = dmatrix(
-    "bs(cnt, knots=knots, degree=3, include_intercept=True)-1",
-    {"cnt": range(len(ser)), "knots": knot_list[1:-1]}
+        "bs(cnt, knots=knots, degree=3, include_intercept=True)-1",
+        {"cnt": range(len(ser)), "knots": knot_list[1:-1]}
     )
-    
+
     with pm.Model() as mod:
-        tau = pm.HalfCauchy("tau", 1) 
+        tau = pm.HalfCauchy("tau", 1)
         beta = pm.Normal("beta", mu=0, sigma=tau, shape=B.shape[1])
         mu = pm.Deterministic("mu", pm.math.dot(B.T.T, beta))
         sigma = pm.HalfNormal("sigma", 1)
@@ -150,39 +152,69 @@ def get_topic_smooth(ser: pd.Series, n_knots: int = 5, is_samp_post_prior: bool 
         if is_samp_post_prior:
             prior = pm.sample_prior_predictive()
             post = pm.sample_posterior_predictive(trace)
-    
+
             return mod, prior, trace, post, B
         else:
             return mod, trace, B
 
-            
 
 def evalute_optimal_smoothing(ser, search_range: range):
     mods, traces = {}, {}
-    for k in tqdm([*search_range]):
 
-        if len(traces) > 3:
-            # if loos shows now improvement after 4 steps continue
-            is_decrease = sum(
-                [
-                    (az.loo(list(traces.values())[i]).elpd_loo > az.loo(list(traces.values())[i-1]).elpd_loo) 
-                    for i in reversed(range(1, len(traces)))
-                ]
-                ) == len(traces) -1
-            if is_decrease:
-                print(f"No Loo improvement for {ser.name}")
-                break
+    for k in search_range:
+        # if len(traces) > 3:
+        #     # if loos shows now improvement after 4 steps continue
+        #     is_decrease = sum(
+        #         [
+        #             (az.loo(list(traces.values())[i]).elpd_loo > az.loo(list(traces.values())[i-1]).elpd_loo) 
+        #             for i in reversed(range(1, len(traces)))
+        #         ]
+        #         ) == len(traces) -1
+        #     if is_decrease:
+        #         print(f"No Loo improvement for {ser.name}")
+        #         break
 
         mod, trace, _ = get_topic_smooth(
             ser,
             n_knots=k,
             is_samp_post_prior=False,
             return_inferencedata=True,
-            idata_kwargs = {'log_likelihood': True}
+            idata_kwargs={'log_likelihood': True}
         )
-        
+
         mods[k] = mod
         traces[k] = trace
 
-    df = az.compare(traces)
+    df = az.compare(traces, ic="waic")
     return df, mods, traces
+
+
+def _run(arguemnts):
+    df, id_col, cols = arguemnts
+
+    dict_compare_az, dict_best_nknot, dict_compare_traces, dict_data_grouped = {}, {}, {}, {}
+    for col in cols:
+        g = df.groupby(id_col)[col].sum().replace({0: np.nan})
+
+        az_df, mods, traces = evalute_optimal_smoothing(g, search_range=range(5, 65, 5))
+        dict_best_nknot[col] = az_df[az_df['rank'] == 0].index[0]
+        dict_compare_az[col] = az_df
+        dict_compare_traces[col] = traces
+        dict_data_grouped[col] = g
+
+    return dict_compare_az, dict_best_nknot, dict_compare_traces, dict_data_grouped
+
+
+def run_parallel(df, id_col: str = 'date'):
+
+    assert id_col in df.columns, f"{id_col} not contained in columns"
+
+    inputs = list(df.drop(id_col, axis=1).columns)
+    N = int(np.ceil(len(inputs) / os.cpu_count()))
+    inputs = [(df, id_col, tuple(inputs[i:i + N])) for i in range(0, len(inputs), N)]
+
+    with multiprocessing.Pool(processes=os.cpu_count()) as pool:
+        start = time.time()
+        res = pool.map(_run, inputs)
+    print(f"This process ran {time.time() - start:<=.4}")
+    return res
