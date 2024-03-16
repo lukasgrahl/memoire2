@@ -5,6 +5,7 @@ from datetime import datetime
 
 from src.pymc_modelling import get_samp
 from itertools import chain
+import matplotlib.pyplot as plt
 
 
 def x_get_ytm_newton(f, p, c, T, guess=.05, max_iter=2_000) -> (float, float):
@@ -137,6 +138,8 @@ def pd_join_dfs(lst_dfs: list, index_name: str = 'date'):
 
     for d in lst_dfs:
         df = df.join(d, how='outer')
+        # del d
+        
     df.index.name = index_name
     return df
 
@@ -165,3 +168,53 @@ def pd_groupby(df, cols, agg_freq: str, agg_func: str):
     
     df.index = df.index.to_timestamp()
     return df
+
+
+def adf_test_summary(ser):
+    # ADF H0: there is a unit root
+
+    specs = {'constant': 'c', 'constant trend': 'ct', 'constant ltend, qtrend': 'ctt', 'none': 'n'}
+    results = {}
+
+    for pretty, spec in specs.items():
+        adf, pval, ulag, nobs, cval, icb = adfuller(ser, regression=spec)
+        keys = ['adf-stat', 'p-value', 'lags', 'obs', *cval.keys(), 'inf crit']
+        res = [adf, pval, ulag, nobs, *cval.values(), icb]
+        results[pretty] = dict(zip(keys, res))
+
+    if ser.name is not None:
+        title = ser.name.upper()
+    else:
+        title = ''
+
+    print('-' * 77)
+    print(f'ADF Test {title}: H0 there is a unit root')
+    print('-' * 77)
+    print(pd.DataFrame(results).transpose().round(3).iloc[:, :-1])
+    print('\n')
+
+    pass
+
+
+def hausman(fe, re):
+    b = fe.params
+    B = re.params
+    v_b = fe.cov
+    v_B = re.cov
+    df = b[np.abs(b) < 1e8].size
+    chi2 = np.dot((b - B).T, np.linalg.inv(v_b - v_B).dot(b - B))
+
+    pval = scipy.stats.chi2.sf(chi2, df)
+    return chi2, df, pval
+
+
+def plt_stacked_bar(df):
+    bottom = np.zeros(df.shape[0])
+    dict_df = {k: np.array(list(v.values())) for k, v in df.to_dict().items()}
+
+    fig, ax = plt.subplots(figsize=(20, 6))
+    for l, w in dict_df.items():
+        p = ax.bar(list(range(df.shape[0])), w, label=l, width=1, bottom=bottom, alpha=.5, )
+        bottom += w
+
+    return fig, ax

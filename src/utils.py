@@ -3,11 +3,13 @@ import pickle
 from datetime import datetime
 from settings import NEWS_TEXT_DIR, GRAPHS_DIR
 import numba as nb
+import scipy
+import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
-
-from settings import DATA_DIR, GRAPHS_DIR
+from itertools import compress
+from settings import DATA_DIR, GRAPHS_DIR, DICT_PARSE_COLS
 
 
 def get_dt_index(df: pd.DataFrame, dt_index_col=None, is_rename_date: bool = True):
@@ -159,3 +161,45 @@ def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwar
     if keep_left_index:
         df = df.set_index(df1.index.name, drop=False)
     return df
+
+
+def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
+    assert arr1.shape == arr2.shape, "please ensure both arrays are of same dimensions"
+    
+    lags = min(len(arr1)-1, lags)
+    y1, y2 = 2/np.sqrt(len(arr1)), -2/np.sqrt(len(arr1))
+    corr = scipy.signal.correlate(arr2, arr2, mode='full', **kwargs)
+    corr = corr[len(arr1)-1-lags: len(arr2)-1+lags]
+    
+    if is_plot:
+        fig, ax = plt.subplots(1,1)
+        # idx = [*range(len(corr))]
+        idx = np.linspace(-lags,lags, lags*2)
+        ax.fill_between(idx, y1, y2, alpha=.2)
+        ax.axhline(y=0, color='black')
+        ax.bar(idx, corr, color='blue', width=.5)
+        ax.set_xlabel(f'no. of lags')
+        ax.set_ylabel(f'correlation')
+        ax.set_title(f"Cross correlation with {lags} lags")
+        plt.tight_layout()
+        
+        return corr, y1, y2, fig
+    
+    else:
+        return corr, y1, y2
+
+
+def pd_df_astype(df, dict_dtypes: dict = None):
+
+    if dict_dtypes is None:
+        dict_dtypes = DICT_PARSE_COLS
+
+    _ = [i in list(dict_dtypes.keys()) for i in df.columns]
+    assert sum(_) == len(df.columns), f"{[*compress(df.columns, ~np.array(_))]} not in parse dict"
+
+    _ = [i in df.columns for i in list(dict_dtypes.keys())]
+    # assert sum(_) == len(dict_dtypes), f"{} not in df columns"
+    dict_dtypes = {k: dict_dtypes[k] for k in [*compress(df.keys(), _)]}
+
+
+    return df.astype(dict_dtypes)

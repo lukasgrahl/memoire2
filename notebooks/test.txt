@@ -1,0 +1,43 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:          pi_perc_error   R-squared:                       0.024
+Model:                            OLS   Adj. R-squared:                  0.021
+Method:                 Least Squares   F-statistic:                     7.953
+Date:                Fri, 15 Mar 2024   Prob (F-statistic):           4.07e-19
+Time:                        13:54:00   Log-Likelihood:                -3196.4
+No. Observations:                5155   AIC:                             6427.
+Df Residuals:                    5138   BIC:                             6538.
+Df Model:                          16                                         
+Covariance Type:            nonrobust                                         
+==================================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+hhinc_midpoint -3.542e-06   2.98e-06     -1.187      0.235   -9.39e-06    2.31e-06
+is_food_shop       0.2012      0.026      7.598      0.000       0.149       0.253
+is_invest_shop     0.1564      0.063      2.467      0.014       0.032       0.281
+is_unempl          0.0633      0.162      0.391      0.696      -0.254       0.381
+is_homeown        -0.0846      0.016     -5.166      0.000      -0.117      -0.053
+employ_-9997       0.4425      0.552      0.802      0.423      -0.639       1.524
+employ_-9998       0.1385      0.356      0.389      0.698      -0.560       0.837
+employ_1           0.1751      0.319      0.549      0.583      -0.450       0.800
+employ_10          0.1114      0.323      0.345      0.730      -0.522       0.744
+employ_11          0.1429      0.327      0.437      0.662      -0.498       0.783
+employ_2           0.1302      0.319      0.408      0.683      -0.496       0.756
+employ_3           0.0606      0.324      0.187      0.851      -0.574       0.695
+employ_4           0.1579      0.327      0.483      0.629      -0.484       0.799
+employ_5           0.0633      0.162      0.391      0.696      -0.254       0.381
+employ_6           0.2162      0.323      0.670      0.503      -0.416       0.849
+employ_7           0.1595      0.319      0.500      0.617      -0.466       0.785
+employ_8           0.0980      0.320      0.306      0.760      -0.530       0.726
+const             -1.1711      0.326     -3.598      0.000      -1.809      -0.533
+==============================================================================
+Omnibus:                      170.200   Durbin-Watson:                   0.782
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              233.339
+Skew:                           0.352   Prob(JB):                     2.14e-51
+Kurtosis:                       3.768   Cond. No.                     6.46e+19
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The smallest eigenvalue is 2.49e-29. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.

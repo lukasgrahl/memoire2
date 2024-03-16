@@ -43,10 +43,13 @@ def get_lda_n_top_words(voc, lda, n_top: int = 10):
         for idx_topic in range(lda.n_components)
     }
 
-    for idx, lst in enumerate([[i[0] for i in lst[:n_top]] for k, lst in dict_topics.items()]):
+    topics = {}
+    for idx, lst in enumerate([[i[0] for i in lst] for k, lst in dict_topics.items()]):
+        topics[idx] = lst
         print(f"\nTopic {idx}")
-        print(" ".join(lst))
-    pass
+        print(" ".join(lst[:n_top]))
+    return topics
+    
 
 
 def load_raw_data(f_name: str):
@@ -196,7 +199,7 @@ def _run(arguemnts):
     for col in cols:
         g = df.groupby(id_col)[col].sum().replace({0: np.nan})
 
-        az_df, mods, traces = evalute_optimal_smoothing(g, search_range=range(5, 65, 5))
+        az_df, mods, traces = evalute_optimal_smoothing(g, search_range=range(5, 80, 5))
         dict_best_nknot[col] = az_df[az_df['rank'] == 0].index[0]
         dict_compare_az[col] = az_df
         dict_compare_traces[col] = traces

@@ -2,6 +2,7 @@ LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate']
 LST_SPACY_POS = ['PROPN', 'NOUN', 'AJD']
 
 DICT_NARRATIVES = {
+
     "D_inflation": {
         'g1': ["kaufpreis", "preis", "verbraucherpreis",],
         'g2': [ "inflation", "inflationsrate"],
@@ -62,7 +63,7 @@ DICT_NARRATIVES = {
         'g2': ['quantiative', 'easing'],
         'g3': ["anleihenkauf", "anleihenkaufprogramm", "staatsanleihenkaufprogramm", "kaufprogramm"],
         "g4": ["pepp"],
-    # },
+    },
     # "M_crisis": {
     #     'g1': ['krise'],
     #     'g2': ['rezession'],
