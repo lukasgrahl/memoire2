@@ -59,7 +59,10 @@ import sys
 
 
 class Capturing(list):
-    def __init__(self, file_name: str):
+    def __init__(self, file_name: str, file_dir: str = None):
+        if file_dir is None: 
+            file_dir = GRAPHS_DIR
+        self.file_dir = file_dir
         self.file_name = file_name
         pass
 
@@ -188,9 +191,8 @@ def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
     else:
         return corr, y1, y2
 
-
-def pd_df_astype(df, dict_dtypes: dict = None):
-
+def pd_df_astype(df_in, dict_dtypes: dict = None):
+    df = df_in.copy()
     if dict_dtypes is None:
         dict_dtypes = DICT_PARSE_COLS
 
@@ -198,8 +200,11 @@ def pd_df_astype(df, dict_dtypes: dict = None):
     assert sum(_) == len(df.columns), f"{[*compress(df.columns, ~np.array(_))]} not in parse dict"
 
     _ = [i in df.columns for i in list(dict_dtypes.keys())]
-    # assert sum(_) == len(dict_dtypes), f"{} not in df columns"
-    dict_dtypes = {k: dict_dtypes[k] for k in [*compress(df.keys(), _)]}
+    dict_dtypes = {k: dict_dtypes[k] for k in [*compress(dict_dtypes.keys(), np.array(_))]}
 
-
-    return df.astype(dict_dtypes)
+    df = df.astype(dict_dtypes)
+    for col in df.columns:
+        if dict_dtypes[col] == "category":
+            df[col] = df[col].astype('category')
+            
+    return df
