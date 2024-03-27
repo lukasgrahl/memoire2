@@ -7,6 +7,8 @@ from src.pymc_modelling import get_samp
 from itertools import chain
 import matplotlib.pyplot as plt
 
+from src.utils import pd_join_freq
+
 
 def x_get_ytm_newton(f, p, c, T, guess=.05, max_iter=2_000) -> (float, float):
     """
@@ -218,3 +220,32 @@ def plt_stacked_bar(df):
         bottom += w
 
     return fig, ax
+
+
+def get_individual_perc_error(df_in, agg_col: str, pi_data: pd.DataFrame,
+                              agg_col_suffix: str = None,
+                              ind_cols: list = ['date_recorded', 'id'], count_thresh: int = 7):
+    
+    sub = df_in.reset_index().groupby(ind_cols)[agg_col].last().dropna().unstack()
+    sub = sub.loc[:, sub.count() > count_thresh]
+    
+    sub = pd_join_freq(sub, pi_data, freq='M', keep_left_index=False, how='left')
+    diff = sub.iloc[:, :-1].values - sub.iloc[:, -1].values[:,None]
+    
+    diff_act = np.array([diff[:, i][~np.isnan(diff[:, i])].mean() for i in range(diff.shape[1])]) * 100
+    diff_mse = np.array([(diff[:, i][~np.isnan(diff[:, i])] ** 2).mean() for i in range(diff.shape[1])]) * 100
+
+    if agg_col_suffix is not None:
+        suffix = f"_{agg_col_suffix}"
+    else:
+        suffix = ""
+    sub_act = pd.DataFrame(data=diff_act,
+                           index=sub.iloc[:, :-1].columns,
+                           columns=[f'{agg_col+suffix}_error_act']).reset_index(names=['id'])
+    sub_mse = pd.DataFrame(data=diff_mse,
+                           index=sub.iloc[:, :-1].columns,
+                           columns=[f'{agg_col+suffix}_error_mse']).reset_index(names=['id'])
+    
+    sub = pd.merge(df_in, sub_act, left_on='id', right_on='id', how='left')
+    sub = pd.merge(sub, sub_mse, left_on='id', right_on='id', how='left')
+    return sub

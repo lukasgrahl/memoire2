@@ -60,7 +60,7 @@ import sys
 
 class Capturing(list):
     def __init__(self, file_name: str, file_dir: str = None):
-        if file_dir is None: 
+        if file_dir is None:
             file_dir = GRAPHS_DIR
         self.file_dir = file_dir
         self.file_name = file_name
@@ -93,6 +93,7 @@ def save_pkl(file: dict, f_name: str, f_path: str = None):
     pickle.dump(file, t)
     t.close()
     pass
+
 
 def save_fig(fig, f_name: str, f_path: str = None):
     if f_path is None:
@@ -148,18 +149,18 @@ def arr_min_max_scale(arr):
 
 def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwargs):
     df1, df2 = df1.copy(), df2.copy()
-    
+
     for d in [df1, df2]:
         assert d.index.name != freq, "pls change index name"
-        
+
     if keep_left_index:
         df1[df1.index.name] = df1.index
         # df2['index_right'] = df2.index
-    
+
     df1[freq] = df1.index.to_period(freq)
     df2[freq] = df2.index.to_period(freq)
-    
-    df = pd.merge(df1, df2, on=freq, **kwargs).set_index(freq) #, axis=1)
+
+    df = pd.merge(df1, df2, on=freq, **kwargs).set_index(freq)  # , axis=1)
     df.index = df.index.to_timestamp()
     if keep_left_index:
         df = df.set_index(df1.index.name, drop=False)
@@ -168,16 +169,16 @@ def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwar
 
 def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
     assert arr1.shape == arr2.shape, "please ensure both arrays are of same dimensions"
-    
-    lags = min(len(arr1)-1, lags)
-    y1, y2 = 2/np.sqrt(len(arr1)), -2/np.sqrt(len(arr1))
+
+    lags = min(len(arr1) - 1, lags)
+    y1, y2 = 2 / np.sqrt(len(arr1)), -2 / np.sqrt(len(arr1))
     corr = scipy.signal.correlate(arr2, arr2, mode='full', **kwargs)
-    corr = corr[len(arr1)-1-lags: len(arr2)-1+lags]
-    
+    corr = corr[len(arr1) - 1 - lags: len(arr2) - 1 + lags]
+
     if is_plot:
-        fig, ax = plt.subplots(1,1)
+        fig, ax = plt.subplots(1, 1)
         # idx = [*range(len(corr))]
-        idx = np.linspace(-lags,lags, lags*2)
+        idx = np.linspace(-lags, lags, lags * 2)
         ax.fill_between(idx, y1, y2, alpha=.2)
         ax.axhline(y=0, color='black')
         ax.bar(idx, corr, color='blue', width=.5)
@@ -185,11 +186,12 @@ def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
         ax.set_ylabel(f'correlation')
         ax.set_title(f"Cross correlation with {lags} lags")
         plt.tight_layout()
-        
+
         return corr, y1, y2, fig
-    
+
     else:
         return corr, y1, y2
+
 
 def pd_df_astype(df_in, dict_dtypes: dict = None):
     df = df_in.copy()
@@ -206,5 +208,57 @@ def pd_df_astype(df_in, dict_dtypes: dict = None):
     for col in df.columns:
         if dict_dtypes[col] == "category":
             df[col] = df[col].astype('category')
-            
+
     return df
+
+
+def get_stars(p_val: float):
+    if p_val <= .01:
+        return '***'
+    elif p_val <= .05:
+        return '**'
+    elif p_val <= .1:
+        return '*'
+    else:
+        return ''
+
+
+def get_statsmodels_tab(lst_models: list, n_round: int = 4):
+    dfs = [mod.summary().tables[1].data for mod in lst_models]
+
+    cols = [map(list, zip(*[list([mod.model.endog_names] * len(dfs[i][0])), dfs[i][0]])) for i, mod in
+            enumerate(lst_models)]
+    cols = [[tuple(z) for z in [*i]] for i in cols]
+
+    dfs = [pd.DataFrame(summary[1:], columns=pd.MultiIndex.from_tuples(cols[i])) for i, summary in enumerate(dfs)]
+    dfs = [df.set_index(df.iloc[:, 0]).iloc[:, 1:] for df in dfs]
+
+    # coefficient table
+    col_vals = ['coef', 'std err', 'pval', 'P>|t|']
+
+    out1 = dfs[0]
+    for i in dfs[1:]:
+        out1 = out1.join(i)
+    out1.index.name = ''
+    filt = [out1.columns.get_level_values(1) == f for f in col_vals]
+    filt = np.array(filt).T.sum(axis=1) > 0
+    out1 = out1.loc[:, filt]
+
+    # extra information
+    out2 = [{'N': mod.model.nobs, 'R2': mod.rsquared, 'R2 ajd.': mod.rsquared_adj} for mod in lst_models]
+    out2 = pd.DataFrame(out2, index=[mod.model.endog_names for mod in lst_models]).T.round(n_round)
+
+    out3 = {}
+    for endog in list(set(out1.columns.get_level_values(0))):
+        _ = {}
+        for i, row in out1.loc[:, endog].iterrows():
+            row = list(row)
+            stars = get_stars(float(row[2]))
+            _[i] = f"{float(row[0])}{stars}\n[{float(row[1])}]"
+
+        out3[endog] = _
+    out3 = pd.DataFrame(out3)
+
+    out4 = out3.T.join(out2.T).T
+
+    return out1, out2, out3, out4

@@ -1,4 +1,0 @@
-| *Category* | *Narrative*     | *Terms*                                                                     |
-| ---------- | --------------- | --------------------------------------------------------------------------- |
-| Demand     | Inflation       | Kaufpreis Preis Verbraucherpreis Inflation Inflationsrate Teuerung          |
-| Demand     | Inflation       | Preissteigerung Inflationserwartung Zinserwartung                           |

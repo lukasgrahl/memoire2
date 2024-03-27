@@ -35,5 +35,10 @@ DICT_PARSE_COLS = {'pi_perc': float,
                    'employ': 'category',
                    'is_food_shop': bool,
                    'is_invest_shop': bool,
-                   'pi_perc_error': float
+                   'pi_perc_error': float,
+                   'debt': 'category', 
+                   'eduwork_txt': 'category',
+                    'hhsize': float, 
+                    'hhchildren': 'category',
+    'debt_midpoint': float, 'wealth_bank_midpoint': float, 'savings_expend': float, 'is_cash_pay': bool,
                    }

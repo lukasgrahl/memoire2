@@ -165,12 +165,11 @@ if __name__ == "__main__":
     N = int(np.ceil(len(inputs) / os.cpu_count()))
     inputs = [tuple(inputs[i:i + N]) for i in range(0, len(inputs), N)]
 
-    inputs = [i[:300] for i in inputs]
+    # inputs = [i[:300] for i in inputs]
 
-    run(inputs[0])
-    
-    # with multiprocessing.Pool(processes=os.cpu_count()) as pool:
-    #     start = time.time()
-    #     res = pool.map(run, inputs)
+    # run(inputs[0])
+    with multiprocessing.Pool(processes=os.cpu_count()) as pool:
+        start = time.time()
+        res = pool.map(run, inputs)
 
-    # print(f"\nThis process ran: {time.time() - start:<=.4}")
+    print(f"\nThis process ran: {time.time() - start:<=.4}")
