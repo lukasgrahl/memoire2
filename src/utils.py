@@ -151,7 +151,8 @@ def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwar
     df1, df2 = df1.copy(), df2.copy()
 
     for d in [df1, df2]:
-        assert d.index.name != freq, "pls change index name"
+        if d.index.name == freq:
+            d.index.name = f'{d.index.name}_2'
 
     if keep_left_index:
         df1[df1.index.name] = df1.index
@@ -172,8 +173,8 @@ def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
 
     lags = min(len(arr1) - 1, lags)
     y1, y2 = 2 / np.sqrt(len(arr1)), -2 / np.sqrt(len(arr1))
-    corr = scipy.signal.correlate(arr2, arr2, mode='full', **kwargs)
-    corr = corr[len(arr1) - 1 - lags: len(arr2) - 1 + lags]
+    corr = scipy.signal.correlate(arr1, arr2, mode='full', **kwargs) / np.sqrt(arr1.std()**2 * arr2.std() **2)
+    corr = corr[len(arr1) - 1 - lags: len(arr1) - 1 + lags]
 
     if is_plot:
         fig, ax = plt.subplots(1, 1)

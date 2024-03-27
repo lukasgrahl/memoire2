@@ -6,6 +6,7 @@ from datetime import datetime
 from src.pymc_modelling import get_samp
 from itertools import chain
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 
 from src.utils import pd_join_freq
 
@@ -210,13 +211,17 @@ def hausman(fe, re):
     return chi2, df, pval
 
 
-def plt_stacked_bar(df):
+def plt_stacked_bar(df, figsize: tuple =(20, 6)):
+
     bottom = np.zeros(df.shape[0])
     dict_df = {k: np.array(list(v.values())) for k, v in df.to_dict().items()}
+    color = cm.rainbow(np.linspace(0, 1, len(dict_df)))
 
-    fig, ax = plt.subplots(figsize=(20, 6))
-    for l, w in dict_df.items():
-        p = ax.bar(list(range(df.shape[0])), w, label=l, width=1, bottom=bottom, alpha=.5, )
+    fig, ax = plt.subplots(figsize=figsize)
+    for i, _ in enumerate(dict_df.items()):
+        l, w = _
+
+        p = ax.bar(list(range(df.shape[0])), w, label=l, width=1, bottom=bottom, alpha=.5, color=color[i])
         bottom += w
 
     return fig, ax
