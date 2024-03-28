@@ -205,10 +205,19 @@ def pd_df_astype(df_in, dict_dtypes: dict = None):
     _ = [i in df.columns for i in list(dict_dtypes.keys())]
     dict_dtypes = {k: dict_dtypes[k] for k in [*compress(dict_dtypes.keys(), np.array(_))]}
 
+    
+    dict_dtypes_cat = {k: v for k, v in dict_dtypes.items() if 'category' in str(v)}
+    dict_dtypes = {k: v for k,v in dict_dtypes.items() if 'category' not in str(v)}
+    for col, dtype in dict_dtypes_cat.items():
+        if dtype == "categoryO":
+            c = pd.CategoricalDtype(sorted([float(i) for i in set(df[col].dropna())]), ordered=True)
+            df[col] = df[col].astype(c)
+        elif dtype == "category":
+            df[col] = df[col].astype(dtype)
+        else:
+            raise KeyError(f"{dtype} unknown, pleas specify")
+
     df = df.astype(dict_dtypes)
-    for col in df.columns:
-        if dict_dtypes[col] == "category":
-            df[col] = df[col].astype('category')
 
     return df
 
@@ -224,7 +233,7 @@ def get_stars(p_val: float):
         return ''
 
 
-def get_statsmodels_tab(lst_models: list, n_round: int = 4):
+def get_statsmodels_tab(lst_models: list, n_round: int = 4, join_on: str = "\n"):
     dfs = [mod.summary().tables[1].data for mod in lst_models]
 
     cols = [map(list, zip(*[list([mod.model.endog_names] * len(dfs[i][0])), dfs[i][0]])) for i, mod in
@@ -255,7 +264,8 @@ def get_statsmodels_tab(lst_models: list, n_round: int = 4):
         for i, row in out1.loc[:, endog].iterrows():
             row = list(row)
             stars = get_stars(float(row[2]))
-            _[i] = f"{float(row[0])}{stars}\n[{float(row[1])}]"
+
+            _[i] = f"{float(row[0])}{stars}{join_on}[{float(row[1])}]"
 
         out3[endog] = _
     out3 = pd.DataFrame(out3)
