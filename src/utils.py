@@ -273,3 +273,7 @@ def get_statsmodels_tab(lst_models: list, n_round: int = 4, join_on: str = "\n")
     out4 = out3.T.join(out2.T).T
 
     return out1, out2, out3, out4
+
+
+def min_max_scale(x):
+    return (x - x.min())/(x.max() - x.min())
