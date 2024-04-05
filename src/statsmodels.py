@@ -25,8 +25,9 @@ def _get_statsmodels_ols_summary(mod):
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])
     
     df = pd.concat([df, df_info],)
+    df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
         
-    return df, endog_name, len(df_info)
+    return df, endog_name
 
 def _get_linearmodels_pols_summary(mod):
     df = pd.DataFrame(pd.concat([mod.params, mod.pvalues, mod.tstats], axis=1))
@@ -44,8 +45,9 @@ def _get_linearmodels_pols_summary(mod):
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])   
     
     df = pd.concat([df, df_info],)
+    df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
     
-    return df, endog_name, len(df_info)
+    return df, endog_name
 
 def _get_statmodels_vecm_summary(mod, endog_index: 0):
     endog_name = mod.model.endog_names[endog_index]
@@ -60,46 +62,43 @@ def _get_statmodels_vecm_summary(mod, endog_index: 0):
     df_info.loc['Coint. rank'] = list([mod.model.coint_rank] * df.shape[1])
     df_info.loc['N lags'] = list([mod.k_ar] * df.shape[1])
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])
-
     
     df = pd.concat([df, df_info])
+    df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
     
-    return df , endog_name, len(df_info)
+    return df , endog_name
     
 
 def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index: int = 0, seperator: str = "\n", 
-                            tresh_sig: float = .05, is_filt_sig: bool = False):
-    lst_dfs = []
-    endog_name_save = ""
+                            tresh_sig: float = .05, is_filt_sig: bool = False, n_round: int = 3):
+    lst_dfs, lst_endog_names = [], []
     for idx, mod in enumerate(lst_mods):
         
         if type(mod) == RegressionResultsWrapper:
-            df, endog_name, n_info = _get_statsmodels_ols_summary(mod)
+            df, endog_name = _get_statsmodels_ols_summary(mod)
             
         elif type(mod) == VECMResults:
-            df, endog_name, n_info = _get_statmodels_vecm_summary(mod, vecm_endog_index)
+            df, endog_name = _get_statmodels_vecm_summary(mod, vecm_endog_index)
             
         elif type(mod) == PanelEffectsResults:
-            df, endog_name, n_info = _get_linearmodels_pols_summary(mod)
+            df, endog_name = _get_linearmodels_pols_summary(mod)
             
         else:
             raise KeyError(f"{type(mod)} not specified")
             
-        if endog_name == endog_name_save:
+        if endog_name in lst_endog_names:
                 endog_name += f"_{idx}"
-        endog_name_save = endog_name
-    
-        
-        # significance thresh
-        df['is_significant'] = df['pval'] <= tresh_sig
-        df.iloc[-n_info:, -1] = list([True] * n_info)
+        lst_endog_names.append(endog_name)
+
                 
         # print output
         df['star'] = df['pval'].apply(lambda x: get_stars(x))
-        df['print'] = df['coef'].round(3).astype(str)
-        df.iloc[:-n_info, -1] = (
-            df.coef.round(3).astype(str) + " " + df.star.astype(str) + seperator + "[" + df.stat.round(3).astype(str) + "]"
-        ).iloc[:-n_info].values
+        df['print'] = df['coef']
+        df['print'] = df.coef.round(n_round).astype(str) + " " + df.star.astype(str) + seperator + "[" + df.stat.round(n_round).astype(str) + "]"
+        df.loc[df['is_info'], 'print'] = df.loc[df.is_info, 'coef'].round(n_round).astype(str)
+        
+        # significance thresh
+        df['is_significant'] = (df['pval'] <= tresh_sig)
         
         cols = [list(df.columns), list([endog_name] * df.shape[1])]
         df.columns = pd.MultiIndex.from_tuples(list(map(tuple, zip(*cols))))
@@ -108,16 +107,12 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
 
     out = pd.concat([df for df in lst_dfs], axis=1, join='outer').sort_index(axis=1)
     is_sig_filt = (out['is_significant'].sum(axis=1) > 0).values
+    out['is_info_sum'] = out['is_info'].sum(axis=1) > 0    
+    
     if is_filt_sig:
-        out = out.loc[is_sig_filt]
-        
+        out = out.loc[(is_sig_filt + out['is_info_sum'] > 0)]
+    out = out.sort_values('is_info_sum')
     out = out[cols_out]
-    # ensure correct order of additional info
-    out = out.loc[
-        [i for i in out.index if i not in ['N', 'R^2', 'Coint. rank', "R^2 between", "R^2 adj."]]
-        + [i for i in out.index if i in ['N', 'R^2', 'Coint. rank', "R^2 between", "R^2 adj."]]
-    ]
-          
 
     return out
 
