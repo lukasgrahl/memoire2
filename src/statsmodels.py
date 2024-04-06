@@ -111,7 +111,7 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
     
     if is_filt_sig:
         out = out.loc[(is_sig_filt + out['is_info_sum'] > 0)]
-    out = out.sort_values('is_info_sum')
+    out = out.sort_index().sort_values('is_info_sum')
     out = out[cols_out]
 
     return out
@@ -149,7 +149,9 @@ def get_cooks_distance(X: np.array, resid: np.array, flt_largest_perc: float = 9
     return arr_cook_dist, filt_percent
 
 
-def get_fig_subplots(n_plots: int, n_cols: int = 2, figsize: tuple =(6,3.5), **kwargs):
+def get_fig_subplots(n_plots: int = 1, n_cols: int = 1, figsize: tuple = None, **kwargs):
+    if figsize is None:
+        figsize = tuple(plt.rcParams["figure.figsize"])
     n_rows = int(np.ceil(n_plots/n_cols))
     fig, ax = plt.subplots(n_rows, n_cols, figsize=(figsize[0] * n_rows, figsize[1] * n_cols), **kwargs)
     if n_plots == 1 and n_cols == 1:
@@ -157,11 +159,12 @@ def get_fig_subplots(n_plots: int, n_cols: int = 2, figsize: tuple =(6,3.5), **k
     else:
         ax = ax.ravel()[:n_plots]
     return fig, ax
+
     
 def get_multiple_vecm_irfs(lst_vecms, idx_vecm: tuple = (0,1), dict_titles: dict = None, **kwargs):
     fig, axes = get_fig_subplots(len(lst_vecms), **kwargs)
     for idx, ax in enumerate(axes):
-        irf = lst_vecms[idx].irf()
+        irf = lst_vecms[idx].irf(periods=5)
         
         ax.plot(irf.irfs[:, *idx_vecm], color='blue', label='irf')
         ax.fill_between(range(len(irf.irfs)), 
