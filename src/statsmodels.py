@@ -161,10 +161,10 @@ def get_fig_subplots(n_plots: int = 1, n_cols: int = 1, figsize: tuple = None, *
     return fig, ax
 
     
-def get_multiple_vecm_irfs(lst_vecms, idx_vecm: tuple = (0,1), dict_titles: dict = None, **kwargs):
+def get_multiple_vecm_irfs(lst_vecms, idx_vecm: tuple = (0,1), irf_periods: int = 5, dict_titles: dict = None, **kwargs):
     fig, axes = get_fig_subplots(len(lst_vecms), **kwargs)
     for idx, ax in enumerate(axes):
-        irf = lst_vecms[idx].irf(periods=5)
+        irf = lst_vecms[idx].irf(periods=irf_periods)
         
         ax.plot(irf.irfs[:, *idx_vecm], color='blue', label='irf')
         ax.fill_between(range(len(irf.irfs)), 

@@ -75,7 +75,7 @@ class Capturing(list):
         self.extend(self._stringio.getvalue().splitlines())
         del self._stringio
         sys.stdout = self._stdout
-        write_to_txt("\n".join(self), self.file_name, file_dir=os.getcwd())
+        write_to_txt("\n".join(self), self.file_name, file_dir=self.file_dir)
 
 
 def write_to_txt(output: str, file_name, file_dir=None):
@@ -168,8 +168,12 @@ def pd_join_freq(df1, df2, freq: str = 'D', keep_left_index: bool = True, **kwar
     return df
 
 
-def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
+def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, figisize: tuple = None, **kwargs):
     assert arr1.shape == arr2.shape, "please ensure both arrays are of same dimensions"
+
+    if figisize is None:
+        figisize = plt.rcParams["figure.figsize"]
+    
 
     lags = min(len(arr1) - 1, lags)
     y1, y2 = 2 / np.sqrt(len(arr1)), -2 / np.sqrt(len(arr1))
@@ -177,7 +181,7 @@ def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, **kwargs):
     corr = corr[len(arr1) - 1 - lags: len(arr1) - 1 + lags]
 
     if is_plot:
-        fig, ax = plt.subplots(1, 1)
+        fig, ax = plt.subplots(1, 1, figisize=figisize)
         # idx = [*range(len(corr))]
         idx = np.linspace(-lags, lags, lags * 2)
         ax.fill_between(idx, y1, y2, alpha=.2)

@@ -253,4 +253,59 @@ def get_individual_perc_error(df_in, agg_col: str, pi_data: pd.DataFrame,
     
     sub = pd.merge(df_in, sub_act, left_on='id', right_on='id', how='left')
     sub = pd.merge(sub, sub_mse, left_on='id', right_on='id', how='left')
+    
     return sub
+
+
+
+def _xcorr_plot(corr, confu, confl, n_lags, dpi: int = 200, figsize: tuple =(14,6)):
+    index = np.linspace(-n_lags, n_lags, n_lags * 2+1)
+    
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi,)
+    for i, idx in enumerate(index):
+        ax.vlines(idx, 0, corr[i], color='blue', )
+        
+    ax.plot(index, corr, lw=0, marker='.', color='blue', label='corr')
+    ax.plot(index, np.zeros(len(index)), color='black', alpha=.8)
+    ax.fill_between(index, confl, confu, color='grey', alpha=.2, label='95% conf.')
+    ax.vlines(0, *ax.get_ylim(), color='black', label='$t=0$', alpha=.5)
+    
+    ax.set_xlabel('lags in $t$')
+    ax.set_ylabel('correlation')
+    
+    ax.set_title(f'Cross correlation with {int((len(corr)-1)/2)} lags')
+    fig.legend()
+    fig.tight_layout()
+    return fig, ax
+
+
+def xcorr(arr: 'float | Array like', arr1: 'float | Array like' = None, n_lags: int = None, plot_res: bool = True, **kwargs):
+    arr = (arr - arr.mean()) / arr.std()
+    if arr1 is None:
+        arr1 = arr.copy()
+    else:
+        arr1 = (arr1 - arr1.mean()) / arr1.std()
+        assert len(arr) == len(arr1), "arrays do not align"
+
+    if n_lags is None:
+        n_lags = len(arr)-1
+    else:
+        n_lags = min(n_lags, len(arr)-1)
+
+    corr = np.correlate(arr, arr1, 'full') 
+    corr = pd.Series(corr, index=np.linspace(-(int((len(corr)-1)/2)), (int((len(corr)-1)/2)), len(corr)))
+    corr /= corr.loc[0] 
+    corr *= scipy.stats.pearsonr(arr, arr1).statistic
+
+    arr_lags = np.linspace(-n_lags, n_lags, n_lags * 2+1)
+    corr = corr.loc[arr_lags].values
+    
+    conf = np.array([np.sqrt(2/(len(arr)-np.abs(k))) for k in arr_lags])
+    confu, confl = 0 + 1.96*conf, 0 - 1.96*conf
+    
+    if plot_res:
+        fig = _xcorr_plot(corr, confu, confl, n_lags, **kwargs)
+    else:
+        fig = None
+        
+    return corr, conf, arr_lags, fig

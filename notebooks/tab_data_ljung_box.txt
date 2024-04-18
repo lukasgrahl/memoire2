@@ -1,0 +1,47 @@
+
+--------------------------------------------------
+Period: 2010-01-01 to 2020-03-01
+
+Ljung Box test for residual autocorrelation: H0 data is indipendently distributed
+      lb_stat  lb_pvalue    bp_stat  bp_pvalue
+1    0.049472        NaN   0.048245        NaN
+2    0.164759   0.684813   0.159721   0.689414
+3    0.521225   0.770579   0.501458   0.778233
+4    6.435022   0.092261   6.122008   0.105823
+5    7.421083   0.115240   7.051025   0.133216
+6   11.340146   0.045038  10.710976   0.057421
+7   15.223370   0.018589  14.305365   0.026405
+8   15.436973   0.030789  14.501315   0.042950
+9   16.331838   0.037869  15.314828   0.053305
+10  16.378969   0.059377  15.357285   0.081578
+
+Test for normality: H0 residual follows a normal distribution
+stats: 0.03131528568513395
+pval: 0.9844643007677194
+
+T-test: H0 the resiudal mean is equal to zero
+stats: 2.263538936978306
+pval: 0.025430043325897572
+
+--------------------------------------------------
+Period: 2020-03-01 to 2023-09-01
+
+Ljung Box test for residual autocorrelation: H0 data is indipendently distributed
+    lb_stat  lb_pvalue   bp_stat  bp_pvalue
+1  1.466562        NaN  1.378568        NaN
+2  1.470431   0.225278  1.382128   0.239739
+3  3.915145   0.141201  3.582370   0.166762
+4  4.062414   0.254803  3.711967   0.294293
+5  4.070855   0.396502  3.719226   0.445336
+6  4.466433   0.484387  4.051512   0.542024
+7  4.503850   0.608826  4.082194   0.665554
+8  4.660170   0.701354  4.207250   0.755621
+9  5.101283   0.746698  4.551318   0.804277
+
+Test for normality: H0 residual follows a normal distribution
+stats: 14.226585856856214
+pval: 0.0008142094394557842
+
+T-test: H0 the resiudal mean is equal to zero
+stats: 1.4903106672176805
+pval: 0.14282358425821762
