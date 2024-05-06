@@ -5,6 +5,8 @@ from settings import NEWS_TEXT_DIR, GRAPHS_DIR
 import numba as nb
 import scipy
 import matplotlib.pyplot as plt
+from io import StringIO
+import sys
 
 import numpy as np
 import pandas as pd
@@ -44,7 +46,7 @@ def load_pd_df(file_name, file_path=None, is_replace_nan=True, **kwargs):
 def save_pd_df(df, file_name: str, file_path=None):
     file_type = file_name.split('.')[-1]
     if file_path is None:
-        file_path = DATA_DIR
+        file_path = GRAPHS_DIR
 
     if file_type == "csv":
         df.to_csv(os.path.join(file_path, file_name))
@@ -53,9 +55,6 @@ def save_pd_df(df, file_name: str, file_path=None):
     else:
         raise KeyError(f"{file_type} unknown")
 
-
-from io import StringIO
-import sys
 
 
 class Capturing(list):
@@ -212,6 +211,7 @@ def pd_df_astype(df_in, dict_dtypes: dict = None):
     
     dict_dtypes_cat = {k: v for k, v in dict_dtypes.items() if 'category' in str(v)}
     dict_dtypes = {k: v for k,v in dict_dtypes.items() if 'category' not in str(v)}
+
     for col, dtype in dict_dtypes_cat.items():
         if dtype == "categoryO":
             c = pd.CategoricalDtype(sorted([float(i) for i in set(df[col].dropna())]), ordered=True)

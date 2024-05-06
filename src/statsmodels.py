@@ -1,6 +1,7 @@
 from statsmodels.regression.linear_model import RegressionResultsWrapper
 from statsmodels.tsa.vector_ar.vecm import VECMResults
 from linearmodels.panel.results import PanelEffectsResults
+import statsmodels.api as sm
 
 from src.utils import get_stars
 
@@ -26,8 +27,35 @@ def _get_statsmodels_ols_summary(mod):
     
     df = pd.concat([df, df_info],)
     df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
+    df['is_print'] = ~df.is_info
         
     return df, endog_name
+
+def pols_get_test_res(mod_fe, mod_re, sub, col, sig: float = .05, seperator: str = "\n"):
+    res = {}
+    
+    # H0: Homoscedasticity is present
+    _ = sm.add_constant(pd.concat([mod_fe.resids, sub[cols]], axis=1))
+    res['Breusch Pagan Test'] = dict(zip(
+        ['LM-Stat', 'LM p-val', 'stat', 'pval'],
+        het_breuschpagan(_[['residual']], _.drop('residual', axis=1))
+    ))
+    
+    # Durbin watson
+    res['Durbin-Watson Test'] = {'stat':durbin_watson(mod_fe.resids)}
+    
+    # Haussman H0: RE is to be preferred
+    res['Hausmann Test'] = dict(zip(['stat', 'df', 'pval'], hausman(mod_fe, mod_re)))
+    
+    df = pd.DataFrame(res).T
+    df['coef'] = df.pval <= sig
+    df['star'] = df.pval.apply(lambda x: get_stars(x))
+    df['print'] = df.coef.astype(str) + " " + df.star.astype(str) + seperator + "[" + df.stat.round(3).astype(str) + "]"
+    df.loc['Durbin-Watson Test', 'print'] = df.loc['Durbin-Watson Test', 'stat'].round(3).astype(str)
+    
+    return df
+    
+    
 
 def _get_linearmodels_pols_summary(mod):
     df = pd.DataFrame(pd.concat([mod.params, mod.pvalues, mod.tstats], axis=1))
@@ -42,14 +70,18 @@ def _get_linearmodels_pols_summary(mod):
     df_info = pd.DataFrame([], columns=df.columns)
     df_info.loc['R^2'] = list([mod.rsquared] * df.shape[1])
     df_info.loc['R^2 between'] = list([mod.rsquared_between] * df.shape[1])
+    df_info.loc['Entity effects'] = list([mod.model.entity_effects] * df.shape[1])
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])   
+    df_info.loc['N entity'] = list([len(set([i[0] for i in mod.fitted_values.index]))] * df.shape[1])
+    df_info.loc['N time'] = list([len(set([i[1] for i in mod.fitted_values.index]))] * df.shape[1])
     
     df = pd.concat([df, df_info],)
     df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
+    df['is_print'] = ~df.is_info
     
     return df, endog_name
 
-def _get_statmodels_vecm_summary(mod, endog_index: 0):
+def _get_statmodels_vecm_summary(mod, endog_index: 0, sig: float = .05):
     endog_name = mod.model.endog_names[endog_index]
     
     df = pd.DataFrame(mod.summary().tables[0].data).iloc[1:].set_index(0)
@@ -63,14 +95,24 @@ def _get_statmodels_vecm_summary(mod, endog_index: 0):
     df_info.loc['N lags'] = list([mod.k_ar] * df.shape[1])
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])
     
+    # h0: data is drawn from normal rpciess
+    p, s = mod.test_normality().pvalue, mod.test_normality().crit_value
+    df_info.loc['Normality'] = list([str(bool(~(p<=sig))), p, s, 0, 0, ])
+    
+    # h0: resid autocorrelation is zero up to lag 10
+    p, s = mod.test_whiteness().pvalue, mod.test_whiteness().crit_value
+    df_info.loc['Whiteness'] = list([str(bool(~(p<=sig))), p, s, 0, 0, ])
+    
+    
     df = pd.concat([df, df_info])
     df['is_info'] = list([False] * (len(df) - len(df_info))) + list([True] * len(df_info))
+    df['is_print'] = list([True] * (len(df) - len(df_info))) + list([False] * (len(df_info)-2)) + list([True] * 2)
     
     return df , endog_name
     
 
 def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index: int = 0, seperator: str = "\n", 
-                            tresh_sig: float = .05, is_filt_sig: bool = False, n_round: int = 3):
+                            thresh_sig: float = .05, is_filt_sig: bool = False, n_round: int = 3):
     lst_dfs, lst_endog_names = [], []
     for idx, mod in enumerate(lst_mods):
         
@@ -78,7 +120,7 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
             df, endog_name = _get_statsmodels_ols_summary(mod)
             
         elif type(mod) == VECMResults:
-            df, endog_name = _get_statmodels_vecm_summary(mod, vecm_endog_index)
+            df, endog_name = _get_statmodels_vecm_summary(mod, vecm_endog_index, sig=thresh_sig)
             
         elif type(mod) == PanelEffectsResults:
             df, endog_name = _get_linearmodels_pols_summary(mod)
@@ -95,10 +137,10 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
         df['star'] = df['pval'].apply(lambda x: get_stars(x))
         df['print'] = df['coef']
         df['print'] = df.coef.round(n_round).astype(str) + " " + df.star.astype(str) + seperator + "[" + df.stat.round(n_round).astype(str) + "]"
-        df.loc[df['is_info'], 'print'] = df.loc[df.is_info, 'coef'].round(n_round).astype(str)
+        df.loc[~df['is_print'], 'print'] = df.loc[~df.is_print, 'coef'].round(n_round).astype(str)
         
         # significance thresh
-        df['is_significant'] = (df['pval'] <= tresh_sig)
+        df['is_significant'] = (df['pval'] <= thresh_sig)
         
         cols = [list(df.columns), list([endog_name] * df.shape[1])]
         df.columns = pd.MultiIndex.from_tuples(list(map(tuple, zip(*cols))))
@@ -111,7 +153,10 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
     
     if is_filt_sig:
         out = out.loc[(is_sig_filt + out['is_info_sum'] > 0)]
+
+
     out = out.sort_index().sort_values('is_info_sum')
+
     out = out[cols_out]
 
     return out

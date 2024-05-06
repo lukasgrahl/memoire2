@@ -211,7 +211,7 @@ def hausman(fe, re):
     return chi2, df, pval
 
 
-def plt_stacked_bar(df, figsize: tuple =(20, 6)):
+def plt_stacked_bar(df, figsize: tuple =(20, 6), bar_width: float = 1.0):
 
     bottom = np.zeros(df.shape[0])
     dict_df = {k: np.array(list(v.values())) for k, v in df.to_dict().items()}
@@ -221,11 +221,11 @@ def plt_stacked_bar(df, figsize: tuple =(20, 6)):
     for i, _ in enumerate(dict_df.items()):
         l, w = _
 
-        p = ax.bar(list(range(df.shape[0])), w, label=l, width=1, bottom=bottom, alpha=.5, color=color[i])
+        p = ax.bar(df.index, w, label=l, width=bar_width, bottom=bottom, alpha=.5, color=color[i])
         bottom += w
 
     return fig, ax
-
+    
 
 def get_individual_perc_error(df_in, agg_col: str, pi_data: pd.DataFrame,
                               agg_col_suffix: str = None,
