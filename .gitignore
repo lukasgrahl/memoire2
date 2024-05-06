@@ -164,6 +164,7 @@ spacy/
 models/
 graphs/
 latex/graphs
+R/
 
 # lateX
 *.aux
@@ -184,3 +185,6 @@ latex/graphs
 
 
 .idea/
+
+# R
+*.Rhistory
