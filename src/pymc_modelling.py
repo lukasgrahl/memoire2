@@ -32,3 +32,60 @@ def get_gp_smoothing(y: np.array):
         post = pm.sample_posterior_predictive(trace)
         
     return gp_mod, prior, trace, post
+
+def get_pymc_mod_table(idata, lst_params=None, n_round: int = 2, seperator:str = "\n"):
+    
+    assert 'log_likelihood' in list(idata.keys()), "pls add idata_kwargs = {'log_likelihood': True}) to pm.sample"
+    
+    dict_params, dict_information = {}, {}
+    n_chains = len(idata.sample_stats.chain)
+    n_draws = len(idata.sample_stats.draw)
+    post = idata.posterior
+    
+    if lst_params is None:
+        lst_params = list(idata.posterior.data_vars.keys())
+        
+    for param in lst_params:
+        
+        shape_param = post[param].values.shape[2:]
+        if len(shape_param) == 0:
+            shape_param = (1,)
+        assert len(shape_param) == 1, "param dimension >1 not supported"
+        
+        arr_param_est = post[param].values.reshape(*shape_param, n_chains * n_draws)
+
+        for idx in range(*shape_param):
+            _dict = {}
+            _dict['mean'] = arr_param_est.mean(axis=1)[idx]
+            _dict['std'] = arr_param_est.std(axis=1)[idx]
+            _dict['confu'] = np.percentile(arr_param_est, 97.5, axis=1)[idx]
+            _dict['confl'] = np.percentile(arr_param_est, 2.5, axis=1)[idx]
+
+            dict_params[f'{param}_{idx}'] = _dict  
+    
+
+    dict_information['N chains'] = n_chains
+    dict_information['N draws'] = n_draws
+    dict_information['N'] = len(idata.observed_data.likelihood)
+    dict_information['LOO'] = az.loo(idata).p_loo
+    dict_information['WAIC'] = az.waic(idata).p_waic
+    dict_information['MCMC divergence'] = idata.sample_stats.diverging.sum().values
+
+    df_params = pd.DataFrame(dict_params).T
+
+    dict_information = {key: dict_information for key in df_params.columns}
+    df_info = pd.DataFrame(dict_information)
+
+    df = pd.concat(
+        [
+            pd.DataFrame(dict_params).T,
+            pd.DataFrame(dict_information),
+
+        ],
+        axis=0,
+    ).astype(float)
+
+    df['print'] = df['mean'].round(n_round).astype(str) + seperator + "[" + df['confl'].round(n_round).astype(str) \
+                    + "," + df['confu'].round(n_round).astype(str) + "]"
+    
+    return df
