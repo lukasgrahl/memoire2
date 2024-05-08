@@ -31,29 +31,6 @@ def _get_statsmodels_ols_summary(mod):
         
     return df, endog_name
 
-def pols_get_test_res(mod_fe, mod_re, sub, col, sig: float = .05, seperator: str = "\n"):
-    res = {}
-    
-    # H0: Homoscedasticity is present
-    _ = sm.add_constant(pd.concat([mod_fe.resids, sub[cols]], axis=1))
-    res['Breusch Pagan Test'] = dict(zip(
-        ['LM-Stat', 'LM p-val', 'stat', 'pval'],
-        het_breuschpagan(_[['residual']], _.drop('residual', axis=1))
-    ))
-    
-    # Durbin watson
-    res['Durbin-Watson Test'] = {'stat':durbin_watson(mod_fe.resids)}
-    
-    # Haussman H0: RE is to be preferred
-    res['Hausmann Test'] = dict(zip(['stat', 'df', 'pval'], hausman(mod_fe, mod_re)))
-    
-    df = pd.DataFrame(res).T
-    df['coef'] = df.pval <= sig
-    df['star'] = df.pval.apply(lambda x: get_stars(x))
-    df['print'] = df.coef.astype(str) + " " + df.star.astype(str) + seperator + "[" + df.stat.round(3).astype(str) + "]"
-    df.loc['Durbin-Watson Test', 'print'] = df.loc['Durbin-Watson Test', 'stat'].round(3).astype(str)
-    
-    return df
     
     
 
@@ -68,8 +45,8 @@ def _get_linearmodels_pols_summary(mod):
     df = df.join(df_conf)
     
     df_info = pd.DataFrame([], columns=df.columns)
-    df_info.loc['R^2'] = list([mod.rsquared] * df.shape[1])
     df_info.loc['R^2 between'] = list([mod.rsquared_between] * df.shape[1])
+    df_info.loc['R^2 within'] = list([mod.rsquared_within] * df.shape[1])
     df_info.loc['Entity effects'] = list([mod.model.entity_effects] * df.shape[1])
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])   
     df_info.loc['N entity'] = list([len(set([i[0] for i in mod.fitted_values.index]))] * df.shape[1])
