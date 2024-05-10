@@ -56,7 +56,6 @@ def save_pd_df(df, file_name: str, file_path=None):
         raise KeyError(f"{file_type} unknown")
 
 
-
 class Capturing(list):
     def __init__(self, file_name: str, file_dir: str = None):
         if file_dir is None:
@@ -172,11 +171,10 @@ def cross_corr(arr1, arr2, lags: int = 10, is_plot: bool = True, figisize: tuple
 
     if figisize is None:
         figisize = plt.rcParams["figure.figsize"]
-    
 
     lags = min(len(arr1) - 1, lags)
     y1, y2 = 2 / np.sqrt(len(arr1)), -2 / np.sqrt(len(arr1))
-    corr = scipy.signal.correlate(arr1, arr2, mode='full', **kwargs) / np.sqrt(arr1.std()**2 * arr2.std() **2)
+    corr = scipy.signal.correlate(arr1, arr2, mode='full', **kwargs) / np.sqrt(arr1.std() ** 2 * arr2.std() ** 2)
     corr = corr[len(arr1) - 1 - lags: len(arr1) - 1 + lags]
 
     if is_plot:
@@ -208,9 +206,8 @@ def pd_df_astype(df_in, dict_dtypes: dict = None):
     _ = [i in df.columns for i in list(dict_dtypes.keys())]
     dict_dtypes = {k: dict_dtypes[k] for k in [*compress(dict_dtypes.keys(), np.array(_))]}
 
-    
     dict_dtypes_cat = {k: v for k, v in dict_dtypes.items() if 'category' in str(v)}
-    dict_dtypes = {k: v for k,v in dict_dtypes.items() if 'category' not in str(v)}
+    dict_dtypes = {k: v for k, v in dict_dtypes.items() if 'category' not in str(v)}
 
     for col, dtype in dict_dtypes_cat.items():
         if dtype == "categoryO":
@@ -280,4 +277,4 @@ def get_statsmodels_tab(lst_models: list, n_round: int = 4, join_on: str = "\n")
 
 
 def min_max_scale(x):
-    return (x - x.min())/(x.max() - x.min())
+    return (x - x.min()) / (x.max() - x.min())

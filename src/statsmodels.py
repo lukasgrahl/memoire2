@@ -72,11 +72,8 @@ def _get_statmodels_vecm_summary(mod, endog_index: 0, sig: float = .05):
     df_info.loc['N lags'] = list([mod.k_ar] * df.shape[1])
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])
     
-    # h0: data is drawn from normal rpciess
-    p, s = mod.test_normality().pvalue, mod.test_normality().crit_value
-    df_info.loc['Normality'] = list([str(bool(~(p<=sig))), p, s, 0, 0, ])
-    
-    # h0: resid autocorrelation is zero up to lag 10
+
+    h0: resid autocorrelation is zero up to lag 10
     p, s = mod.test_whiteness().pvalue, mod.test_whiteness().crit_value
     df_info.loc['Whiteness'] = list([str(bool(~(p<=sig))), p, s, 0, 0, ])
     
@@ -90,6 +87,17 @@ def _get_statmodels_vecm_summary(mod, endog_index: 0, sig: float = .05):
 
 def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index: int = 0, seperator: str = "\n", 
                             thresh_sig: float = .05, is_filt_sig: bool = False, n_round: int = 3):
+    """
+    Prints summary table for statmodels regression models
+    :param lst_mods:
+    :param cols_out:
+    :param vecm_endog_index:
+    :param seperator:
+    :param thresh_sig:
+    :param is_filt_sig:
+    :param n_round:
+    :return:
+    """
     lst_dfs, lst_endog_names = [], []
     for idx, mod in enumerate(lst_mods):
         
@@ -140,6 +148,12 @@ def get_statsmodels_summary(lst_mods, cols_out: str = 'print', vecm_endog_index:
 
 
 def get_dfbetas(X: np.array, resid: np.array):
+    """
+    Computes dfbetas
+    :param X:
+    :param resid:
+    :return:
+    """
     assert X.shape[0] == resid.shape[0], "X and resid do not correspond"
     lst_dfbetas = []
     
@@ -156,6 +170,13 @@ def get_dfbetas(X: np.array, resid: np.array):
     
 
 def get_cooks_distance(X: np.array, resid: np.array, flt_largest_perc: float = 97.5):
+    """
+    Calculates Cook's distance
+    :param X:
+    :param resid:
+    :param flt_largest_perc:
+    :return:
+    """
     n, p = len(resid), np.linalg.matrix_rank(X)
     
     s_2 = resid.T @ resid / (n - p)

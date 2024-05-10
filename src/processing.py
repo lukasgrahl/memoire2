@@ -2,6 +2,8 @@ import scipy
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from scipy.stats import norm, halfcauchy, beta, gamma
+from statsmodels.tsa.stattools import adfuller
 
 from src.pymc_modelling import get_samp
 from itertools import chain
@@ -62,9 +64,6 @@ def srs_get_ytm(srs: pd.Series, maturity_date: datetime, coupon: float,
     print(f"Overall solver residuals: mean {stat.mean}, std: {np.sqrt(stat.variance)}")
 
     return np.array(out)
-
-
-from scipy.stats import norm, halfcauchy, beta, gamma
 
 
 def get_aic(arr, fitted_dist):
@@ -129,8 +128,6 @@ def get_homogeneous_shape(srs: pd.Series, target_count, dists: list = ['gamma', 
 
 
 def pd_join_dfs(lst_dfs: list, index_name: str = 'date'):
-    # assert ([type(i.index) == pd.core.indexes.datetimes.DatetimeIndex for i in lst_dfs]) == len(lst_dfs), "not datetime index"
-
     df = pd.DataFrame(
         index=pd.date_range(
             start=min([*chain(*[[i.index.min(), i.index.max()] for i in lst_dfs])]),
@@ -142,7 +139,7 @@ def pd_join_dfs(lst_dfs: list, index_name: str = 'date'):
     for d in lst_dfs:
         df = df.join(d, how='outer')
         # del d
-        
+
     df.index.name = index_name
     return df
 
@@ -168,7 +165,7 @@ def pd_groupby(df, cols, agg_freq: str, agg_func: str):
         df = df.groupby(agg_freq).apply(lambda x: np.quantile(x.dropna(), .75) if len(x.dropna()) > 1 else np.nan)
     else:
         raise KeyError(f'{agg_func} unknonw, please specify in func')
-    
+
     df.index = df.index.to_timestamp()
     return df
 
@@ -211,8 +208,7 @@ def hausman(fe, re):
     return chi2, df, pval
 
 
-def plt_stacked_bar(df, figsize: tuple =(20, 6), bar_width: float = 1.0):
-
+def plt_stacked_bar(df, figsize: tuple = (20, 6), bar_width: float = 1.0):
     bottom = np.zeros(df.shape[0])
     dict_df = {k: np.array(list(v.values())) for k, v in df.to_dict().items()}
     color = cm.rainbow(np.linspace(0, 1, len(dict_df)))
@@ -225,18 +221,17 @@ def plt_stacked_bar(df, figsize: tuple =(20, 6), bar_width: float = 1.0):
         bottom += w
 
     return fig, ax
-    
+
 
 def get_individual_perc_error(df_in, agg_col: str, pi_data: pd.DataFrame,
                               agg_col_suffix: str = None,
                               ind_cols: list = ['date_recorded', 'id'], count_thresh: int = 7):
-    
     sub = df_in.reset_index().groupby(ind_cols)[agg_col].last().dropna().unstack()
     sub = sub.loc[:, sub.count() > count_thresh]
-    
+
     sub = pd_join_freq(sub, pi_data, freq='M', keep_left_index=False, how='left')
-    diff = sub.iloc[:, :-1].values - sub.iloc[:, -1].values[:,None]
-    
+    diff = sub.iloc[:, :-1].values - sub.iloc[:, -1].values[:, None]
+
     diff_act = np.array([diff[:, i][~np.isnan(diff[:, i])].mean() for i in range(diff.shape[1])]) * 100
     diff_mse = np.array([(diff[:, i][~np.isnan(diff[:, i])] ** 2).mean() for i in range(diff.shape[1])]) * 100
 
@@ -246,40 +241,49 @@ def get_individual_perc_error(df_in, agg_col: str, pi_data: pd.DataFrame,
         suffix = ""
     sub_act = pd.DataFrame(data=diff_act,
                            index=sub.iloc[:, :-1].columns,
-                           columns=[f'{agg_col+suffix}_error_act']).reset_index(names=['id'])
+                           columns=[f'{agg_col + suffix}_error_act']).reset_index(names=['id'])
     sub_mse = pd.DataFrame(data=diff_mse,
                            index=sub.iloc[:, :-1].columns,
-                           columns=[f'{agg_col+suffix}_error_mse']).reset_index(names=['id'])
-    
+                           columns=[f'{agg_col + suffix}_error_mse']).reset_index(names=['id'])
+
     sub = pd.merge(df_in, sub_act, left_on='id', right_on='id', how='left')
     sub = pd.merge(sub, sub_mse, left_on='id', right_on='id', how='left')
-    
+
     return sub
 
 
+def _xcorr_plot(corr, confu, confl, n_lags, dpi: int = 200, figsize: tuple = (14, 6)):
+    index = np.linspace(-n_lags, n_lags, n_lags * 2 + 1)
 
-def _xcorr_plot(corr, confu, confl, n_lags, dpi: int = 200, figsize: tuple =(14,6)):
-    index = np.linspace(-n_lags, n_lags, n_lags * 2+1)
-    
-    fig, ax = plt.subplots(figsize=figsize, dpi=dpi,)
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi, )
     for i, idx in enumerate(index):
         ax.vlines(idx, 0, corr[i], color='blue', )
-        
+
     ax.plot(index, corr, lw=0, marker='.', color='blue', label='corr')
     ax.plot(index, np.zeros(len(index)), color='black', alpha=.8)
     ax.fill_between(index, confl, confu, color='grey', alpha=.2, label='95% conf.')
     ax.vlines(0, *ax.get_ylim(), color='black', label='$t=0$', alpha=.5)
-    
+
     ax.set_xlabel('lags in $t$')
     ax.set_ylabel('correlation')
-    
-    ax.set_title(f'Cross correlation with {int((len(corr)-1)/2)} lags')
+
+    ax.set_title(f'Cross correlation with {int((len(corr) - 1) / 2)} lags')
     fig.legend()
     fig.tight_layout()
     return fig, ax
 
 
-def xcorr(arr: 'float | Array like', arr1: 'float | Array like' = None, n_lags: int = None, plot_res: bool = True, **kwargs):
+def xcorr(arr: 'float | Array like', arr1: 'float | Array like' = None, n_lags: int = None, plot_res: bool = True,
+          **kwargs):
+    """
+    Cross and auto-correlation plot for arr
+    :param arr:
+    :param arr1:
+    :param n_lags:
+    :param plot_res:
+    :param kwargs:
+    :return:
+    """
     arr = (arr - arr.mean()) / arr.std()
     if arr1 is None:
         arr1 = arr.copy()
@@ -288,24 +292,24 @@ def xcorr(arr: 'float | Array like', arr1: 'float | Array like' = None, n_lags: 
         assert len(arr) == len(arr1), "arrays do not align"
 
     if n_lags is None:
-        n_lags = len(arr)-1
+        n_lags = len(arr) - 1
     else:
-        n_lags = min(n_lags, len(arr)-1)
+        n_lags = min(n_lags, len(arr) - 1)
 
-    corr = np.correlate(arr, arr1, 'full') 
-    corr = pd.Series(corr, index=np.linspace(-(int((len(corr)-1)/2)), (int((len(corr)-1)/2)), len(corr)))
-    corr /= corr.loc[0] 
+    corr = np.correlate(arr, arr1, 'full')
+    corr = pd.Series(corr, index=np.linspace(-(int((len(corr) - 1) / 2)), (int((len(corr) - 1) / 2)), len(corr)))
+    corr /= corr.loc[0]
     corr *= scipy.stats.pearsonr(arr, arr1).statistic
 
-    arr_lags = np.linspace(-n_lags, n_lags, n_lags * 2+1)
+    arr_lags = np.linspace(-n_lags, n_lags, n_lags * 2 + 1)
     corr = corr.loc[arr_lags].values
-    
-    conf = np.array([np.sqrt(2/(len(arr)-np.abs(k))) for k in arr_lags])
-    confu, confl = 0 + 1.96*conf, 0 - 1.96*conf
-    
+
+    conf = np.array([np.sqrt(2 / (len(arr) - np.abs(k))) for k in arr_lags])
+    confu, confl = 0 + 1.96 * conf, 0 - 1.96 * conf
+
     if plot_res:
         fig = _xcorr_plot(corr, confu, confl, n_lags, **kwargs)
     else:
         fig = None
-        
+
     return corr, conf, arr_lags, fig

@@ -1,3 +1,5 @@
+## Narrative lists as defined by André et al. (2023)
+
 LST_IS_INFL_TOKENS = ['inflation', 'inflationsrate']
 LST_SPACY_POS = ['PROPN', 'NOUN', 'AJD']
 

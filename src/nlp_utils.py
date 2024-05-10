@@ -22,6 +22,11 @@ from src.utils import load_pickle, save_pd_df
 
 
 def get_spacy_NLP(lang: str = 'de'):
+    """
+    Get spacy pipeline by language
+    :param lang:
+    :return:
+    """
     if lang == 'de':
         nlp = spacy.load(
             os.path.abspath(
@@ -38,6 +43,13 @@ def get_spacy_NLP(lang: str = 'de'):
 
 
 def get_lda_n_top_words(voc, lda, n_top: int = 10):
+    """
+    Print top n words by topic for sklearn LDA
+    :param voc:
+    :param lda:
+    :param n_top:
+    :return:
+    """
     dict_topics = {
         idx_topic: sorted(zip(voc, lda.components_[idx_topic]), key=lambda x: x[1], reverse=True)
         for idx_topic in range(lda.n_components)
@@ -53,6 +65,11 @@ def get_lda_n_top_words(voc, lda, n_top: int = 10):
 
 
 def load_raw_data(f_name: str):
+    """
+    Load raw articles data as obtained from FACTIVA
+    :param f_name:
+    :return:
+    """
     data = load_pickle(f_name, f_path=DATA_DIR)
 
     df = pd.DataFrame(data)
@@ -71,8 +88,10 @@ def load_raw_data(f_name: str):
     pass
 
 
-# Custom subclass for PTW-guided LDA
 class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
+    """
+    Guided LDA wrapper class for Sklearn LDA
+    """
 
     def __init__(self, n_components=10, doc_topic_prior=None, topic_word_prior=None, learning_method='online',
                  learning_decay=0.7, learning_offset=10.0, max_iter=10, batch_size=128, evaluate_every=-1,
@@ -137,6 +156,14 @@ class PTWGuidedLatentDirichletAllocation(LatentDirichletAllocation):
 
 
 def get_topic_smooth(ser: pd.Series, n_knots: int = 5, is_samp_post_prior: bool = True, **kwargs):
+    """
+    Bayesian MCMC spline regression estimation for n_knots on ser
+    :param ser:
+    :param n_knots: number of spline knots
+    :param is_samp_post_prior: sample predictive prior
+    :param kwargs:
+    :return:
+    """
     knot_list = np.linspace(0, len(ser), n_knots + 2)[1:-1]
 
     B = dmatrix(
@@ -162,21 +189,15 @@ def get_topic_smooth(ser: pd.Series, n_knots: int = 5, is_samp_post_prior: bool 
 
 
 def evalute_optimal_smoothing(ser, search_range: range):
+    """
+    Runs serval spline regressions for a search_range of integer values
+    :param ser:
+    :param search_range: integer range
+    :return:
+    """
     mods, traces = {}, {}
 
     for k in search_range:
-        # if len(traces) > 3:
-        #     # if loos shows now improvement after 4 steps continue
-        #     is_decrease = sum(
-        #         [
-        #             (az.loo(list(traces.values())[i]).elpd_loo > az.loo(list(traces.values())[i-1]).elpd_loo) 
-        #             for i in reversed(range(1, len(traces)))
-        #         ]
-        #         ) == len(traces) -1
-        #     if is_decrease:
-        #         print(f"No Loo improvement for {ser.name}")
-        #         break
-
         mod, trace, _ = get_topic_smooth(
             ser,
             n_knots=k,
@@ -193,6 +214,11 @@ def evalute_optimal_smoothing(ser, search_range: range):
 
 
 def _run(arguemnts):
+    """
+    helper function to run_parrallel
+    :param arguemnts:
+    :return:
+    """
     df, id_col, cols = arguemnts
 
     dict_compare_az, dict_best_nknot, dict_compare_traces, dict_data_grouped = {}, {}, {}, {}
@@ -209,6 +235,12 @@ def _run(arguemnts):
 
 
 def run_parallel(df, id_col: str = 'date'):
+    """
+    Runs evalute_optimal_smoothing MCMC spline regression in parallel
+    :param df:
+    :param id_col:
+    :return:
+    """
 
     assert id_col in df.columns, f"{id_col} not contained in columns"
 
