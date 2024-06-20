@@ -105,3 +105,20 @@ def get_pymc_mod_table(idata, lst_params=None, n_round: int = 2, seperator: str 
                   + "," + df['confu'].round(n_round).astype(str) + "]"
 
     return df
+
+def get_post_sample(idata, mu_name: str = 'mu', n_samples: int = 100):
+    # number of chains
+    n_chains = len(idata.sample_stats.chain)
+    # number of draws in a chain
+    n_draws = len(idata.sample_stats.draw)
+    
+    post = idata.posterior
+    # number of data observations
+    n_obs = post[mu_name].shape[2:]
+    
+    # number of samples to draw from posterior
+    n_samples = min(n_samples, n_chains * n_draws)
+    
+    samp = post[mu_name].values[:, get_samp(n_draws, 100),:].reshape(n_chains*100, *n_obs)
+    
+    return samp

@@ -1,0 +1,187 @@
+[acronyms]
+API = "Application programmable interface"
+CPI = "Consumer Price Index"
+# BEI = "Break even inflation"
+# YTM = "Yield to maturity"
+HHP = "Bundesbank German Household Panel Survey"
+VAR = "Vector Autoregression"
+MCMC = "Monte Carlo Markov Chain" 
+WAIC = "Wiledly Applicable Information Criterion"
+LDA = "Latent Dirichlet Allocation"
+# GP = "Gaussian Process"
+NK = "New Keynesian"
+GDP = "Gross Domestic Product"
+FIRE = "Full Information Rational Expectation"
+NKP = "New Keynesian Phillips Curve"
+IS = "Investment Savings Curve"
+FOMC = "Federal Open Market Committee"
+IID = "Identically Independently Distributed Random Variable"
+VECM = "Vector Error Correction Model"
+IRF = "Impulse Response Function"
+OLS = "Ordinary Least Square"
+EUROSTAT = "Statistical Office of the European Communities"
+
+[var_names]
+"is_food_shop" = "Primary shopper"
+"pinc_midpoint750.0" = "P Income 750"
+"pinc_midpoint1750.0" = "P Income 1750"
+"pinc_midpoint7000.0" = "P Income 7000"
+
+"hhinc_midpoint1250.0" = "HH Income 1250"
+"hhinc_midpoint1750.0" = "HH Income 1750"
+"hhinc_midpoint2250.0" = "HH Income 2250"
+"hhinc_midpoint2750.0" = "HH Income 2750"
+"hhinc_midpoint3250.0" = "HH Income 3250"
+"hhinc_midpoint3750.0" = "HH Income 3750"
+"hhinc_midpoint4250.0" = "HH Income 4250"
+"hhinc_midpoint5500.0" = "HH Income 5500"
+"hhinc_midpoint7000.0" = "HH Income 70000"
+"hhinc_midpoint.2750.0" = "Income 2.750"
+"hhinc_midpoint.9000.0" = "Income 9.000"
+"hhinc_midpoint.7000.0" = "Income 7.000"
+"hhinc_midpoint.5500.0" = "Income 5.500"
+"hhinc_midpoint.4250.0" = "Income 4.250"
+"hhinc_midpoint.3750.0" = "Income 3.750"
+"hhinc_midpoint.3250.0" = "Income 3.250"
+"hhinc_midpoint.1750.0" = "Income 1.750"
+"hhinc_midpoint.1250.0" = "Income 1.250"
+"hhinc_midpoint.12000.0" = "Income 12.000"
+"hhinc_midpoint.2250.0" = "Income 2.250"
+"hhinc_midpoint" = "HH income"
+
+"riskaversion" = "Riskaversion"
+"riskaversion1.0" = "Riskaverse 1"
+"riskaversion2.0" = "Riskaverse 2"
+"riskaversion3.0" = "Riskaverse 3"
+"riskaversion4.0" = "Riskaverse 4"
+"riskaversion5.0" = "Riskaverse 5"
+"riskaversion6.0" = "Riskaverse 6"
+"riskaversion7.0" = "Riskaverse 7"
+"riskaversion8.0" = "Riskaverse 8"
+"riskaversion9.0" = "Riskaverse 9"
+"riskaversion10.0" = "Riskaverse 10"
+
+"const" = "Constant"
+
+
+"pi_de_surprise_Y" = '$pi^"surprise"_t$'
+"pi_de_surprise_Y_lead1" = '$pi^"surprise"_(t-1)$'
+"L1.pi_de_surprise_Y" = '$pi^"surprise"_(t-1)$'
+"L2.pi_de_surprise_Y" = '$pi^"surprise"_(t-2)$'
+"L3.pi_de_surprise_Y" = '$pi^"surprise"_(t-3)$'
+"L4.pi_de_surprise_Y" = '$pi^"surprise"_(t-4)$'
+"L5.pi_de_surprise_Y" = '$pi^"surprise"_(t-5)$'
+"L6.pi_de_surprise_Y" = '$pi^"surprise"_(t-6)$'
+"L1.pi_de_surprise_Y_lead1" = '$pi^"surprise"_(t-1|t)$'
+"L2.pi_de_surprise_Y_lead1" = '$pi^"surprise"_(t-2|t-1)$'
+"L3.pi_de_surprise_Y_lead1" = '$pi^"surprise"_(t-3|t-2)$'
+
+"pi_de_estimate_Y" = '$pi^("estimate")_t$'
+"pi_de_estimate_Y_lead1" = '$pi^("estimate")_(t-1)$'
+"L1.pi_de_estimate_Y" = '$pi^"structural"_(t-1)$'
+"L2.pi_de_estimate_Y" = '$pi^"structural"_(t-2)$'
+"L3.pi_de_estimate_Y" = '$pi^"structural"_(t-3)$'
+"L4.pi_de_estimate_Y" = '$pi^"structural"_(t-4)$'
+"L5.pi_de_estimate_Y" = '$pi^"structural"_(t-5)$'
+"L6.pi_de_estimate_Y" = '$pi^"structural"_(t-6)$'
+"L1.pi_de_estimate_Y_lead1" = '$pi^"surprise"_(t-1|t)$'
+"L2.pi_de_estimate_Y_lead1" = '$pi^"surprise"_(t-2|t-1)$'
+"L3.pi_de_estimate_Y_lead1" = '$pi^"surprise"_(t-3|t-2)$'
+
+# NEWS
+"L1.T_sum" = "$N_(t-1)$"
+"L2.T_sum" = "$N_(t-2)$"
+"T_sum_diff_lag" = '$N^"diff"_t$'
+"T_sum_ind_diff" = '$Delta N_t$'
+"T_sum_diff_lag_M" = '$N^"diff"_t$'
+"T_sum_ind_op" = "$N_t$"
+"L1.T_sum_ind_op" = "$N_(t-1)$"
+"L2.T_sum_ind_op" = "$N_(t-2)$"
+"L3.T_sum_ind_op" = "$N_(t-3)$"
+
+
+
+"delta_pe_MY" = "$pi^(Delta e)_(t|t+12)$" 
+"delta_pe" = "$pi^(Delta e)_(t|t+12)$" 
+"delta_pe_error" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"delta_pe_MY_error_act" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"delta_pe_MY_error_act_1" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"delta_pe_MY_error_act_MY" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"delta_pe_MY_error_act_3" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"L1.delta_pe_MY" = "$pi^(Delta e)_(t|t+12)$"
+"L2.delta_pe_MY" = "$pi^(Delta e)_(t-1|t+11)$"
+"L3.delta_pe_MY" = "$pi^(Delta e)_(t-2|t+10)$"
+"L1.delta_pe_MY_error_act_MY" = "$tilde(pi)^(Delta e)_(t|t+12)$"
+"L2.delta_pe_MY_error_act_MY" = "$tilde(pi)^(Delta e)_(t-1|t+11)$"
+
+"pi_perc_MY" = "$pi^p_t$"
+"pi_perc_MY_2" = "$pi^p_(t-1|t)$"
+"pi_perc_1" = "$pi^p_(t-1|t)$"
+"pi_perc_MY_1" = "$pi^p_(t-1|t)$"
+"pi_perc1" = "$pi^p_(t|t-1)$"
+"pi_perc_MY_S_error_act" = "$tilde(pi)^p_(t|t-1)$"
+"pi_perc" = "$pi^p_t$"
+"pi_perc_MY_error_act" = "$tilde(pi)^p_t$"
+"pi_perc_error" = "$tilde(pi)^p_t$"
+"L1.pi_perc_MY_error_act" = "$tilde(pi)^p_t$"
+"L2.pi_perc_MY_error_act" = "$tilde(pi)^p_(t-1)$"
+"L1.pi_perc_MY_S_error_act" = "$tilde(pi)^p_(t-1|t)$"
+"L2.pi_perc_MY_S_error_act" = "$tilde(pi)^p_(t-2|t-1)$"
+
+"L1.pi_perc_MY" = "$pi^p_t$"
+"L2.pi_perc_MY" = "$pi^p_(t-2)$"
+"L3.pi_perc_MY" = "$pi^p_(t-3)$"
+"L4.pi_perc_MY" = "$pi^p_(t-4)$"
+"L5.pi_perc_MY" = "$pi^p_(t-5)$"
+"L6.pi_perc_MY" = "$pi^p_(t-6)$"
+
+
+"pi_exp_MY" = "$pi^e_(t|t+12)$"
+"pi_exp" = "$pi^e_(t|t+12)$"
+"pi_exp_MY_error_act" = "$tilde(pi)^e_(t|t+12)$"
+"L1.pi_exp_MY" = "$pi^e_(t-1)$"
+"L2.pi_exp_MY" = "$pi^e_(t-2)$"
+"L3.pi_exp_MY" = "$pi^e_(t-3)$"
+"pi_de_Y" = "$pi_t$"
+"pi_de_Y_1" = "$pi_t$"
+"pi_de_Y_diff" = "$tilde(pi)_t$"
+
+# OTHER
+"is_unempl" = "Unemployed"
+"debt.4.0" = "Debt 10.000"
+"savings_planned" = "Future savings"
+
+# CHILDREN
+"hhchildren0.0" = "no child"
+"hhchildren1.0" = "1 child"
+"hhchildren2.0" = "2 children"
+"hhchildren3.0" = "3 children"
+"hhchildren4.0" = "4 children"
+
+# DESCRIPTIVES
+"R^2" = "$R^2$"
+"R^2 between" = '$R^2 "between"$'
+"R^2 within" = '$R^2 "within"$'
+"R^2 adj." = '$R^2_("adj")$'
+
+# EDUCATION
+"eduwork_txtMaster abgeschlossen" = "Education  MSc"
+"eduwork_txtLehre abgeschlossen" = "Educaton vocational"
+"eduwork_txtberuflich-schulische Ausbildung abgeschlossen" = "Education school"
+"eduwork_txtAbschluss Meisterschule" = "Education Craftsman"
+"eduwork_txtBachelor abgeschlossen" = "Education BSc"
+"eduwork_txtAusbildung Fachschule abgeschlossen" = "Education BSc applied"
+"eduwork_txtStudent" = "Currently student"
+"eduwork_txtanderer Abschluss" = "Education other"
+"eduschool_txtFachhochschulreife" = "Applied university degree"
+"profession_txtAngestellte" = "Employee"
+"profession_txtAuszubildende" = "Currently vocational training"
+"profession_txtSelbständige" = "Self-employed"
+
+
+
+
+
+
+
+

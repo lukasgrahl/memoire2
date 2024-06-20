@@ -73,7 +73,7 @@ def _get_statmodels_vecm_summary(mod, endog_index: 0, sig: float = .05):
     df_info.loc['N'] = list([mod.nobs] * df.shape[1])
     
 
-    h0: resid autocorrelation is zero up to lag 10
+    # h0: resid autocorrelation is zero up to lag 10
     p, s = mod.test_whiteness().pvalue, mod.test_whiteness().crit_value
     df_info.loc['Whiteness'] = list([str(bool(~(p<=sig))), p, s, 0, 0, ])
     
